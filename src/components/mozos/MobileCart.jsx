@@ -128,7 +128,7 @@ const MobileCart = ({
                           >
                             <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
                               <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zm-3.109 10.928A4 4 0 017.5 15.5H4a1 1 0 01-1-1v-3.5a4 4 0 01-.072-1.072l6.216-6.216 2.828 2.828-6.216 6.216z" />
-            </svg>
+                            </svg>
                           </button>
                           <button
                             onClick={() => onRemoveItem(item.orderId)}

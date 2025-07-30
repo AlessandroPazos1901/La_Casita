@@ -1,81 +1,78 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect } from 'react';
 import useDashboard from '../../../hooks/useDashboard';
 import FormularioPresupuesto from '../forms/FormularioPresupuesto';
 import CategoriaManagement from './CategoriaManagement';
 import { supabase } from '../../../services/supabaseClient';
 
 function PresupuestosSection() {
-  const { gastos, categorias, loading, error } = useDashboard();
+  const { categorias, loading, error } = useDashboard();
+  
   const [presupuestos, setPresupuestos] = useState([]);
   const [presupuestosLoading, setPresupuestosLoading] = useState(true);
   const [presupuestosError, setPresupuestosError] = useState(null);
+  
+  // Este estado ahora se cargará desde la base de datos
+  const [gastosPorCategoria, setGastosPorCategoria] = useState({}); 
+
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [editingPresupuesto, setEditingPresupuesto] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [activeTab, setActiveTab] = useState('presupuestos'); // 'presupuestos' o 'categorias'
+  const [activeTab, setActiveTab] = useState('presupuestos');
   
   const months = [
     'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
   ];
 
-  // Obtener nombres de categorías de la base de datos (con validación)
-  const expenseCategories = categorias ? categorias.map(cat => cat.nombre) : [];
-
-  // Cargar presupuestos al montar el componente y cuando cambien mes/año
   useEffect(() => {
-    if (!loading && categorias.length > 0) {
+    // La condición `categorias.length > 0` asegura que no se ejecute
+    // hasta que tengamos la lista de categorías disponible.
+    if (categorias && categorias.length > 0) {
       loadPresupuestos();
     }
-  }, [selectedMonth, selectedYear, loading, categorias]);
+  }, [selectedMonth, selectedYear, categorias]);
 
+  // Esta función ahora carga tanto presupuestos como los gastos reales del mes
   const loadPresupuestos = async () => {
+    setPresupuestosLoading(true);
+    setPresupuestosError(null);
+
     try {
-      setPresupuestosLoading(true);
-      setPresupuestosError(null);
+      const startDate = new Date(selectedYear, selectedMonth - 1, 1).toISOString().split('T')[0];
+      const endDate = new Date(selectedYear, selectedMonth, 0).toISOString().split('T')[0];
 
-      const { data, error } = await supabase
-        .from('presupuestos')
-        .select('*')
-        .eq('mes', selectedMonth)
-        .eq('año', selectedYear)
-        .order('categoria');
+      const [presupuestosResult, gastosResult] = await Promise.all([
+        supabase
+          .from('presupuestos')
+          .select('*')
+          .eq('mes', selectedMonth)
+          .eq('año', selectedYear),
+        supabase
+          .from('gastos_por_categoria') // Usamos la VISTA
+          .select('categoria, total_gastado')
+          .gte('fecha', startDate)
+          .lte('fecha', endDate)
+      ]);
 
-      if (error) throw error;
-      setPresupuestos(data || []);
+      if (presupuestosResult.error) throw presupuestosResult.error;
+      if (gastosResult.error) throw gastosResult.error;
+
+      setPresupuestos(presupuestosResult.data || []);
+
+      const gastosAgrupados = (gastosResult.data || []).reduce((acc, gasto) => {
+        acc[gasto.categoria] = (acc[gasto.categoria] || 0) + parseFloat(gasto.total_gastado);
+        return acc;
+      }, {});
+      
+      setGastosPorCategoria(gastosAgrupados);
+
     } catch (err) {
-      console.error('Error loading presupuestos:', err);
+      console.error('Error loading data for period:', err);
       setPresupuestosError(err.message);
     } finally {
       setPresupuestosLoading(false);
     }
-  };
-
-  // Calcular gastos por categoría para el mes/año seleccionado
-  const calcularGastosPorCategoria = () => {
-    const gastosPorCategoria = {};
-    
-    // Inicializar todas las categorías en 0
-    expenseCategories.forEach(cat => {
-      gastosPorCategoria[cat] = 0;
-    });
-
-    // Filtrar gastos del mes/año seleccionado
-    const gastosDelMes = gastos.filter(gasto => {
-      const fechaGasto = new Date(gasto.fecha);
-      return fechaGasto.getMonth() + 1 === selectedMonth && 
-             fechaGasto.getFullYear() === selectedYear;
-    });
-
-    // Sumar gastos por categoría
-    gastosDelMes.forEach(gasto => {
-      if (gastosPorCategoria.hasOwnProperty(gasto.categoria)) {
-        gastosPorCategoria[gasto.categoria] += parseFloat(gasto.monto);
-      }
-    });
-
-    return gastosPorCategoria;
   };
 
   const handleAddOrUpdateBudget = async (categoria, montoPresupuestado) => {
@@ -246,7 +243,7 @@ function PresupuestosSection() {
     Error: {error}
   </div>;
 
-  const gastosPorCategoria = calcularGastosPorCategoria();
+  const expenseCategories = categorias ? categorias.map(cat => cat.nombre) : [];
 
   return (
     <div className="bg-white p-8 rounded-lg shadow-xl">

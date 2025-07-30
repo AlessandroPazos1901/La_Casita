@@ -2,12 +2,17 @@
 import React, { useState, useEffect } from 'react';
 // import useDashboard from '../../../hooks/useDashboard';
 import { useDataCache } from '../../../contexts/DataCacheContext';
+import { supabase } from '../../../services/supabaseClient';
 
 function ReporteDiaSection() {
-  const { getFreshDailyData, isLoading: initialLoading } = useDataCache();
+  const { getFreshDailyData, 
+    refreshCache ,
+    isLoading: initialLoading 
+  } = useDataCache();
   const today = new Date().toISOString().split('T')[0];
   
-  const [reportDate, setReportDate] = useState(today);
+  const [reportDate, setReportDate] = useState(new Date().toISOString().split('T')[0]);
+  const [isClosing, setIsClosing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [dailyData, setDailyData] = useState({
@@ -18,7 +23,33 @@ function ReporteDiaSection() {
     balanceNeto: 0,
     ingresosPorOrigen: { efectivo: 0, pos: 0, yape_plin: 0 }
   });
+  // Funcion para el cierre del dia
+  const handleCerrarDia = async () => {
+    const confirmation = window.confirm(
+      `⚠️ ADVERTENCIA ⚠️\n\nEstás a punto de cerrar el día ${reportDate}. Esto guardará un resumen de las ventas y borrará permanentemente todos los pedidos de esta fecha.\n\nEsta acción no se puede deshacer.\n\n¿Estás seguro de que quieres continuar?`
+    );
 
+    if (confirmation) {
+      setIsClosing(true);
+      try {
+        const { error } = await supabase.rpc('cerrar_dia', {
+          report_date: reportDate,
+        });
+
+        if (error) {
+          throw error;
+        }
+
+        alert('¡Día cerrado con éxito! Se ha guardado el resumen y borrado el historial de pedidos del día.');
+        // Refrescamos todos los datos de la aplicación
+        refreshCache();
+      } catch (error) {
+        alert(`Error al cerrar el día: ${error.message}`);
+      } finally {
+        setIsClosing(false);
+      }
+    }
+  };
   // Función mejorada para obtener datos del día seleccionado
   const loadDailyData = () => {
     // Crear fechas sin problemas de zona horaria
@@ -162,7 +193,14 @@ function ReporteDiaSection() {
         <i className="fas fa-calendar-day text-orange-500 mr-3"></i>
         Reporte del Día
       </h1>
-
+      {/* Boton de Cerrar dia */}
+      <button
+          onClick={handleCerrarDia}
+          disabled={isClosing}
+          className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-md disabled:opacity-50 disabled:cursor-wait"
+        >
+          {isClosing ? 'Cerrando...' : '🔒 Cerrar Día'}
+      </button>
       {/* Selector de fecha mejorado */}
       <div className="mb-8 p-6 bg-gray-50 rounded-lg">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">

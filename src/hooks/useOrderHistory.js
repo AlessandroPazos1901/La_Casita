@@ -7,8 +7,45 @@ const useOrderHistory = (mozoId, userRole) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    loadOrderHistory();
-  }, [mozoId, userRole]);
+      // 1. Carga los datos iniciales al montar el componente
+      loadOrderHistory();
+
+      // 2. Crea un canal de comunicación en tiempo real con la tabla 'pedidos'
+      const channel = supabase
+        .channel('realtime-pedidos')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'pedidos' }, // Escucha INSERT y UPDATE
+          (payload) => {
+            console.log('¡Cambio en tiempo real recibido!', payload);
+            
+            // Actualizamos el estado local con los nuevos datos del pedido
+            // Esto es para UPDATE. Si un pedido se actualiza (ej: se paga), lo reemplazamos.
+            if (payload.eventType === 'UPDATE') {
+              setOrdersHistory(prevOrders =>
+                prevOrders.map(order =>
+                  order.id === payload.new.id
+                    // Unimos los datos viejos con los nuevos para no perder detalles como 'pedido_items'
+                    ? { ...order, ...payload.new } 
+                    : order
+                )
+              );
+            }
+            // Esto es para INSERT. Si un nuevo pedido se crea, lo añadimos al principio de la lista.
+            if (payload.eventType === 'INSERT') {
+              // Nota: El payload.new no tendrá los datos de 'mozo' o 'pedido_items'.
+              // Una recarga simple es lo más fácil aquí para obtener todos los datos anidados.
+              loadOrderHistory();
+            }
+          }
+        )
+        .subscribe();
+
+      // 3. Función de limpieza: cierra la conexión al salir de la página
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }, [mozoId, userRole]);
 
   const loadOrderHistory = async () => {
     try {
