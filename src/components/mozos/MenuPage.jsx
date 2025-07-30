@@ -170,7 +170,7 @@ const MenuPage = ({ mozoData, userRole }) => {
   }
 
   return (
-    <div className="flex h-full min-h-screen">
+    <>
       <MessageDisplay 
         message={message} 
         type={messageType} 
@@ -178,9 +178,9 @@ const MenuPage = ({ mozoData, userRole }) => {
       />
       
       {/* Contenido principal */}
-      <div className="flex w-full">
+      <div className="flex flex-col lg:flex-row h-full">
         {/* Área del menú */}
-        <div className="flex-1 flex flex-col h-full">
+        <div className="flex-1 flex flex-col min-h-0">
           {/* Header del menú (solo desktop) */}
           <div className={`p-6 hidden lg:block bg-white ${userRole === 'admin' ? 'pt-20' : ''}`}>
             <div className="flex justify-between items-center pb-4 border-b border-gray-200">
@@ -245,6 +245,7 @@ const MenuPage = ({ mozoData, userRole }) => {
             </div>
           </div>
           )}
+          
           {/* Barra de búsqueda y filtros - STICKY mejorada */}
           <div className={`sticky ${userRole === 'admin' ? 'top-16' : 'top-0'} ${userRole === 'admin' ? 'lg:top-16' : 'lg:top-0'} bg-white shadow-sm z-20 px-4 lg:px-6 py-4`}>
             {/* Barra de búsqueda */}
@@ -354,18 +355,13 @@ const MenuPage = ({ mozoData, userRole }) => {
           </div>
         </div>
 
-        {/* Carrito lateral (solo desktop) */}
-        <div className="hidden lg:flex flex-col w-96 bg-white shadow-xl border-l border-gray-200 h-screen sticky top-0">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">
-              Pedido Actual
-            </h2>
-            
-            {/* Número de mesa */}
-            <div className="mb-6">
-              <label htmlFor="tableNumber" className="block text-gray-700 text-sm font-semibold mb-2">
-                Número de Mesa:
-              </label>
+        {/* Carrito lateral (solo desktop) - ARREGLADO */}
+        <div className="hidden lg:flex flex-col w-96 bg-white shadow-xl border-l border-gray-200 h-screen">
+          {/* 1. Header del carrito (tamaño fijo) */}
+          <div className="p-6 border-b border-gray-200 flex-shrink-0">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">Pedido Actual</h2>
+            <div>
+              <label htmlFor="tableNumber" className="block text-gray-700 text-sm font-semibold mb-2">Número de Mesa:</label>
               <input
                 type="text"
                 id="tableNumber"
@@ -382,9 +378,7 @@ const MenuPage = ({ mozoData, userRole }) => {
             {isEmpty ? (
               <div className="text-center py-12">
                 <div className="text-4xl mb-4">🛒</div>
-                <p className="text-gray-500">
-                  No hay elementos en el pedido
-                </p>
+                <p className="text-gray-500">No hay elementos en el pedido</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -429,18 +423,16 @@ const MenuPage = ({ mozoData, userRole }) => {
             )}
           </div>
 
-          {/* Total y botón de envío - sticky en la parte inferior */}
-          <div className="border-t border-gray-200 p-6 bg-white">
+          {/* Total y botón de envío - SIEMPRE VISIBLE */}
+          <div className="border-t border-gray-200 p-6 bg-white flex-shrink-0">
             <div className="flex justify-between items-center mb-4">
               <span className="text-xl font-bold text-gray-800">Total:</span>
-              <span className="text-2xl font-bold text-blue-700">
-                S/. {totalPrice.toFixed(2)}
-              </span>
+              <span className="text-2xl font-bold text-blue-700">S/. {totalPrice.toFixed(2)}</span>
             </div>
             <button
               onClick={handleSendOrder}
               disabled={isEmpty || orderLoading || !tableNumber.trim()}
-              className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-6 rounded-full shadow-lg transform transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-purple-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-6 rounded-full shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {orderLoading ? 'Procesando...' : isEditing ? 'Actualizar Pedido' : 'Enviar Pedido'}
             </button>
@@ -487,7 +479,7 @@ const MenuPage = ({ mozoData, userRole }) => {
           </span>
         )}
       </button>
-    </div>
+    </>
   );
 };
 

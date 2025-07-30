@@ -86,20 +86,18 @@ function App() {
                     isAuthenticated={isAuthenticated()}
                   >
                     <div className="flex flex-col h-screen bg-gray-100">
-                      {/* <div className="flex-1 flex flex-col overflow-hidden"> */}
-                        <Header 
-                          user={user} 
-                          userRole={userRole} 
-                          mozoName={mozoName}
-                          onLogout={logout}
+                      <Header 
+                        user={user} 
+                        userRole={userRole} 
+                        mozoName={mozoName}
+                        onLogout={logout}
+                      />
+                      <main className="flex-1 flex flex-col min-h-0">
+                        <MenuPage 
+                          mozoData={mozoData} 
+                          userRole={userRole}
                         />
-                        <main className="flex-1 overflow-hidden">
-                          <MenuPage 
-                            mozoData={mozoData} 
-                            userRole={userRole}
-                          />
-                        </main>
-                      {/* </div> */}
+                      </main>
                     </div>
                   </ProtectedRoute>
                 }
@@ -307,7 +305,7 @@ function App() {
                           mozoName={mozoName}
                           onLogout={logout}
                         />
-                        <main className="flex-1 overflow-hidden">
+                        <main className="flex-1 flex flex-col min-h-0">
                           <MenuPage 
                             mozoData={mozoData} 
                             userRole={userRole}
