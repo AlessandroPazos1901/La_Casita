@@ -51,7 +51,7 @@ const LoginPage = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-700">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#E8D5C8] to-[#CF9D34]">
       <MessageDisplay 
         message={message} 
         type={messageType} 
@@ -132,15 +132,6 @@ const LoginPage = ({ onLogin }) => {
           <p className="text-sm text-gray-500">
             ¿Problemas para acceder? Contacta al administrador
           </p>
-        </div>
-
-        {/* Información de desarrollo - remover en producción */}
-        <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-          <p className="text-xs text-gray-600 font-semibold mb-2">Usuarios de prueba:</p>
-          <div className="text-xs text-gray-500 space-y-1">
-            <p><strong>Admin:</strong> admin / admin123</p>
-            <p><strong>Mozo:</strong> juanp123 / juan123</p>
-          </div>
         </div>
       </div>
     </div>
