@@ -191,7 +191,19 @@ body {
   white-space: nowrap;
   border: 0;
 }
-
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 /* Dark mode ready (opcional para el futuro) */
 @media (prefers-color-scheme: dark) {
   .dark-mode-ready {

@@ -85,8 +85,8 @@ function App() {
                     userRole={userRole}
                     isAuthenticated={isAuthenticated()}
                   >
-                    <div className="flex h-screen bg-gray-100">
-                      <div className="flex-1 flex flex-col overflow-hidden">
+                    <div className="flex flex-col h-screen bg-gray-100">
+                      {/* <div className="flex-1 flex flex-col overflow-hidden"> */}
                         <Header 
                           user={user} 
                           userRole={userRole} 
@@ -99,7 +99,7 @@ function App() {
                             userRole={userRole}
                           />
                         </main>
-                      </div>
+                      {/* </div> */}
                     </div>
                   </ProtectedRoute>
                 }
