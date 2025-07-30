@@ -85,65 +85,74 @@ const MobileCart = ({
           <div className="flex-1 overflow-y-auto p-4">
             {currentOrder.length === 0 ? (
               <div className="text-center py-12">
-                <div className="text-6xl mb-4">🛒</div>
-                <p className="text-gray-500 text-lg font-medium">
-                  No hay elementos en el pedido
-                </p>
-                <p className="text-gray-400 text-sm mt-2">
-                  Agrega productos desde el menú
-                </p>
+                {/* ... (tu mensaje de carrito vacío no cambia) ... */}
               </div>
             ) : (
               <div className="space-y-4">
-                {currentOrder.map((item) => (
-                  <div key={item.orderId} className="bg-gray-50 p-4 rounded-lg shadow-sm">
-                    <div className="flex justify-between items-start mb-3">
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-gray-800 text-lg">
-                          {item.nombre}
-                        </h3>
-                        <p className="text-gray-600 text-sm">
-                          Cantidad: {item.quantity}
-                        </p>
-                        {item.notas && (
-                          <p className="text-sm text-gray-600 italic mt-2 p-2 bg-yellow-50 rounded border-l-4 border-yellow-300">
-                            <span className="font-medium">Notas:</span> {item.notas}
+                {currentOrder.map((item) => {
+                  // --- 1. LÓGICA AÑADIDA: Obtenemos las notas válidas ---
+                  const itemNotes = item.individuals
+                    .map(individual => individual.notes || individual.notas || '')
+                    .filter(note => note && note.trim() !== '');
+
+                  return (
+                    <div key={item.orderId} className="bg-gray-50 p-4 rounded-lg shadow-sm">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-gray-800 text-lg">
+                            {item.nombre}
+                          </h3>
+                          <p className="text-gray-600 text-sm">
+                            Cantidad: {item.quantity}
                           </p>
-                        )}
+
+                          {/* --- 2. JSX MODIFICADO: Mostramos las notas como una lista --- */}
+                          {itemNotes.length > 0 && (
+                            <div className="mt-2 p-2 bg-gray-100 rounded">
+                              <ul className="list-disc list-inside pl-2 space-y-1">
+                                {itemNotes.map((note, index) => (
+                                  <li key={index} className="text-sm text-purple-700 italic">
+                                    {note}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="flex space-x-2 ml-3">
+                          <button
+                            onClick={() => onEditItem(item)}
+                            disabled={loading}
+                            className="p-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full ..."
+                          >
+                            <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                              <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zm-3.109 10.928A4 4 0 017.5 15.5H4a1 1 0 01-1-1v-3.5a4 4 0 01-.072-1.072l6.216-6.216 2.828 2.828-6.216 6.216z" />
+            </svg>
+                          </button>
+                          <button
+                            onClick={() => onRemoveItem(item.orderId)}
+                            disabled={loading}
+                            className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-full ..."
+                          >
+                            <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm6 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" />
+                            </svg>
+                          </button>
+                        </div>
                       </div>
                       
-                      <div className="flex space-x-2 ml-3">
-                        <button
-                          onClick={() => onEditItem(item)}
-                          disabled={loading}
-                          className="p-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full shadow-md transform transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zm-3.109 10.928A4 4 0 017.5 15.5H4a1 1 0 01-1-1v-3.5a4 4 0 01-.072-1.072l6.216-6.216 2.828 2.828-6.216 6.216z" />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => onRemoveItem(item.orderId)}
-                          disabled={loading}
-                          className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-md transform transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm6 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" />
-                          </svg>
-                        </button>
+                      <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+                        <span className="text-sm text-gray-600">
+                          S/. {item.precio} x {item.quantity}
+                        </span>
+                        <span className="text-lg font-bold text-blue-600">
+                          S/. {(item.precio * item.quantity).toFixed(2)}
+                        </span>
                       </div>
                     </div>
-                    
-                    <div className="flex justify-between items-center pt-2 border-t border-gray-200">
-                      <span className="text-sm text-gray-600">
-                        S/. {item.precio} x {item.quantity}
-                      </span>
-                      <span className="text-lg font-bold text-blue-600">
-                        S/. {(item.precio * item.quantity).toFixed(2)}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

@@ -170,7 +170,7 @@ const MenuPage = ({ mozoData, userRole }) => {
   }
 
   return (
-    <>
+    <div className="flex flex-col h-full">
       <MessageDisplay 
         message={message} 
         type={messageType} 
@@ -178,7 +178,7 @@ const MenuPage = ({ mozoData, userRole }) => {
       />
       
       {/* Contenido principal */}
-      <div className="flex flex-col lg:flex-row h-full">
+      <div className="flex flex-col lg:flex-row flex-1 min-h-0">
         {/* Área del menú */}
         <div className="flex-1 flex flex-col min-h-0">
           {/* Header del menú (solo desktop) */}
@@ -287,7 +287,7 @@ const MenuPage = ({ mozoData, userRole }) => {
           )}
 
           {/* Grid de productos - Área con scroll */}
-          <div className="flex-1 overflow-y-auto px-4 lg:px-6 py-4 pb-20 lg:pb-4">
+          <div className="flex-1 overflow-y-auto px-4 lg:px-6 py-4 pb-20 lg:pb-4 lg:min-h-0">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
               {filteredItems.length > 0 ? (
                 filteredItems.map((item) => (
@@ -356,7 +356,7 @@ const MenuPage = ({ mozoData, userRole }) => {
         </div>
 
         {/* Carrito lateral (solo desktop) - ARREGLADO */}
-        <div className="hidden lg:flex flex-col w-96 bg-white shadow-xl border-l border-gray-200 h-screen">
+        <div className="hidden lg:flex flex-col w-96 bg-white shadow-xl border-l border-gray-200 h-full relative">
           {/* 1. Header del carrito (tamaño fijo) */}
           <div className="p-6 border-b border-gray-200 flex-shrink-0">
             <h2 className="text-2xl font-bold text-gray-800 mb-4">Pedido Actual</h2>
@@ -374,7 +374,7 @@ const MenuPage = ({ mozoData, userRole }) => {
           </div>
 
           {/* Items del pedido - área con scroll */}
-          <div className="flex-1 overflow-y-auto px-6 py-4">
+          <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0">
             {isEmpty ? (
               <div className="text-center py-12">
                 <div className="text-4xl mb-4">🛒</div>
@@ -382,57 +382,71 @@ const MenuPage = ({ mozoData, userRole }) => {
               </div>
             ) : (
               <div className="space-y-4">
-                {currentOrder.map((item) => (
-                  <div key={item.orderId} className="bg-gray-50 p-4 rounded-lg">
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="flex-1">
-                        <p className="font-semibold text-gray-800">
-                          {item.nombre} (x{item.quantity})
-                        </p>
-                        {item.notas && (
-                          <p className="text-sm text-gray-600 italic mt-1">
-                            Notas: {item.notas}
+                {currentOrder.map((item) => {
+                  // --- 1. LÓGICA AÑADIDA: Obtenemos las notas que no están vacías ---
+                  const itemNotes = item.individuals
+                    .map(individual => individual.notes || individual.notas || '')
+                    .filter(note => note && note.trim() !== '');
+
+                  return (
+                    <div key={item.orderId} className="bg-gray-50 p-4 rounded-lg">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <p className="font-semibold text-gray-800">
+                            {item.nombre} (x{item.quantity})
                           </p>
-                        )}
+                          
+                          {/* --- 2. JSX MODIFICADO: Mostramos las notas como una lista --- */}
+                          {itemNotes.length > 0 && (
+                            <ul className="list-disc list-inside pl-1 mt-1">
+                              {itemNotes.map((note, index) => (
+                                <li key={index} className="text-sm text-purple-700 italic">
+                                  {note}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+
+                        <div className="flex space-x-2 ml-4">
+                          <button
+                            onClick={() => openCustomizeModal(item)}
+                            className="p-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full shadow-md ..."
+                          >
+                            <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                              <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zm-3.109 10.928A4 4 0 017.5 15.5H4a1 1 0 01-1-1v-3.5a4 4 0 01-.072-1.072l6.216-6.216 2.828 2.828-6.216 6.216z" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => handleRemoveFromOrder(item.orderId)}
+                            className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-md ..."
+                          >
+                            <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm6 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" />
+                            </svg>
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex space-x-2 ml-4">
-                        <button
-                          onClick={() => openCustomizeModal(item)}
-                          className="p-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full shadow-md transform transition-all duration-300 hover:scale-105"
-                        >
-                          <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zm-3.109 10.928A4 4 0 017.5 15.5H4a1 1 0 01-1-1v-3.5a4 4 0 01-.072-1.072l6.216-6.216 2.828 2.828-6.216 6.216z" />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => handleRemoveFromOrder(item.orderId)}
-                          className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-md transform transition-all duration-300 hover:scale-105"
-                        >
-                          <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm6 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" />
-                          </svg>
-                        </button>
-                      </div>
+                      <p className="text-blue-600 font-bold text-right mt-2">
+                        S/. {(item.precio * item.quantity).toFixed(2)}
+                      </p>
                     </div>
-                    <p className="text-blue-600 font-bold">
-                      S/. {(item.precio * item.quantity).toFixed(2)}
-                    </p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
 
           {/* Total y botón de envío - SIEMPRE VISIBLE */}
-          <div className="border-t border-gray-200 p-6 bg-white flex-shrink-0">
-            <div className="flex justify-between items-center mb-4">
-              <span className="text-xl font-bold text-gray-800">Total:</span>
-              <span className="text-2xl font-bold text-blue-700">S/. {totalPrice.toFixed(2)}</span>
+          <div className="border-t border-gray-200 p-4 bg-white flex-shrink-0">
+            <div className="flex justify-between items-center mb-3">
+              <span className="text-lg font-bold text-gray-800">Total:</span>
+              <span className="text-xl font-bold text-blue-700">S/. {totalPrice.toFixed(2)}</span>
             </div>
             <button
               onClick={handleSendOrder}
               disabled={isEmpty || orderLoading || !tableNumber.trim()}
-              className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-6 rounded-full shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-5 rounded-full shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
             >
               {orderLoading ? 'Procesando...' : isEditing ? 'Actualizar Pedido' : 'Enviar Pedido'}
             </button>
@@ -479,7 +493,7 @@ const MenuPage = ({ mozoData, userRole }) => {
           </span>
         )}
       </button>
-    </>
+    </div>
   );
 };
 

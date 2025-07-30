@@ -198,20 +198,19 @@ export const CurrentOrderProvider = ({ children, mozoData, userRole }) => {
 
       // Insertar items del pedido
     const itemsToInsert = currentOrder.map(item => {
+      const notasAGuardar = item.individuals
+          .map(individual => individual.notas)
+          .filter(nota => nota && nota.trim() !== '');
 
-    const notasAGuardar = item.individuals
-        .map(individual => individual.notas)
-        .filter(nota => nota && nota.trim() !== '');
-
- 
-    return {
-        pedido_id: orderResult.data.id,
-        producto_id: item.id,
-        cantidad: item.quantity,
-        precio_unitario: item.precio,
-        
-        notas: notasAGuardar.length > 0 ? JSON.stringify(notasAGuardar) : null
-    };
+  
+      return {
+          pedido_id: orderResult.data.id,
+          producto_id: item.id,
+          cantidad: item.quantity,
+          precio_unitario: item.precio,
+          
+          notas: notasAGuardar.length > 0 ? JSON.stringify(notasAGuardar) : null
+      };  
     });
 
       const itemsResult = await insertOrderItems(itemsToInsert);
@@ -226,6 +225,7 @@ export const CurrentOrderProvider = ({ children, mozoData, userRole }) => {
   };
 
   const updateExistingOrder = async (orderId, total) => {
+    console.log("Datos en currentOrder ANTES de actualizar:", JSON.stringify(currentOrder, null, 2));
     try {
       // Obtener items actuales del pedido
       const currentItemsResult = await getOrderItems(orderId);
@@ -262,20 +262,21 @@ export const CurrentOrderProvider = ({ children, mozoData, userRole }) => {
 
       // Insertar nuevos items
         const itemsToInsert = currentOrder.map(item => {
+        // Recogemos todas las notas individuales que no estén vacías
         const notasAGuardar = item.individuals
-            .map(individual => individual.notas)
-            .filter(nota => nota && nota.trim() !== '');
+          .map(individual => individual.notas)
+          .filter(nota => nota && nota.trim() !== '');
 
+        // Devolvemos el objeto para insertar en la base de datos
         return {
-            // Usamos el 'orderId' que recibe la función, no 'orderResult'
-            pedido_id: orderId,
-            
-            producto_id: item.id,
-            cantidad: item.quantity,
-            precio_unitario: item.precio,
-            notas: notasAGuardar.length > 0 ? JSON.stringify(notasAGuardar) : null
+          pedido_id: orderId,
+          producto_id: item.id,
+          cantidad: item.quantity,
+          precio_unitario: item.precio,
+          // Si hay notas, las convertimos a JSON. Si no, guardamos null.
+          notas: notasAGuardar.length > 0 ? JSON.stringify(notasAGuardar) : null
         };
-        });
+      });
 
       const insertResult = await insertOrderItems(itemsToInsert);
       if (!insertResult.success) {
@@ -309,23 +310,42 @@ export const CurrentOrderProvider = ({ children, mozoData, userRole }) => {
 
   const loadOrderForEditing = (orderToEdit) => {
     try {
-      // Convertir items del pedido a formato del carrito
-      const existingItems = orderToEdit.pedido_items.map(item => ({
-        id: item.producto?.id || item.producto_id,
-        nombre: item.producto?.nombre || `Producto ${item.producto_id}`,
-        precio: item.precio_unitario,
-        categoria: item.producto?.categoria || 'Sin categoría',
-        descripcion: item.producto?.descripcion || '',
-        stock: item.producto?.stock || 0,
-        activo: item.producto?.activo || true,
-        orderId: Date.now() + Math.random() + item.id,
-        quantity: item.cantidad,
-        notas: item.notas || '',
-        individuals: Array.from({ length: item.cantidad }, () => ({
-            subId: Date.now() + Math.random(),
-            notas: ''
-        }))
-      }));
+      const existingItems = orderToEdit.pedido_items.map(item => {
+        let notasGuardadas = [];
+        // Primero, intentamos decodificar las notas guardadas en la base de datos
+        try {
+          const parsed = JSON.parse(item.notas);
+          if (Array.isArray(parsed)) {
+            notasGuardadas = parsed;
+          }
+        } catch (e) {
+          // Si no es un JSON válido (podría ser una nota antigua), pero es un string, lo usamos
+          if (typeof item.notas === 'string' && item.notas) {
+            notasGuardadas = [item.notas];
+          }
+        }
+
+        // Segundo, creamos el array 'individuals' usando las notas que recuperamos
+        const individualsArray = Array.from({ length: item.cantidad }, (_, index) => ({
+          subId: Date.now() + Math.random() + index,
+          notas: notasGuardadas[index] || '' // Usamos la nota guardada o un string vacío si no hay una para este item
+        }));
+
+        // Finalmente, devolvemos el objeto del producto en el formato correcto para el carrito
+        return {
+          id: item.producto?.id || item.producto_id,
+          nombre: item.producto?.nombre || `Producto ${item.producto_id}`,
+          precio: item.precio_unitario,
+          categoria: item.producto?.categoria || 'Sin categoría',
+          descripcion: item.producto?.descripcion || '',
+          stock: item.producto?.stock || 0,
+          activo: item.producto?.activo || true,
+          orderId: Date.now() + Math.random() + item.id,
+          quantity: item.cantidad,
+          notas: '', // La nota principal ya no es relevante aquí
+          individuals: individualsArray // Asignamos el array correcto con las notas recuperadas
+        };
+      });
 
       setCurrentOrder(existingItems);
       setTableNumber(orderToEdit.mesa);
