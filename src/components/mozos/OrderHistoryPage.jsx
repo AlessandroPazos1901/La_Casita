@@ -18,7 +18,8 @@ const OrderHistoryPage = ({ mozoData, userRole }) => {
     ordersHistory, 
     loading, 
     error, 
-    updateOrder
+    updateOrder,
+    deleteOrder
   } = useOrderHistory(mozoData?.id, userRole);
   
   const { loadOrderForEditing } = useCurrentOrder(mozoData);
@@ -105,6 +106,22 @@ const OrderHistoryPage = ({ mozoData, userRole }) => {
     });
   };
 
+  const handleDeleteOrder = async (orderToDelete) => {
+    // Siempre pedir confirmación para acciones destructivas.
+    const isConfirmed = window.confirm(
+      `¿Estás seguro de que quieres eliminar permanentemente el pedido ${orderToDelete.numero_pedido} de la mesa ${orderToDelete.mesa}?\n\nEsta acción no se puede deshacer y el stock de los productos será restaurado.`
+    );
+
+    if (isConfirmed) {
+      const result = await deleteOrder(orderToDelete.id);
+      if (result.success) {
+        showSuccess('Pedido eliminado correctamente y stock restaurado.');
+        refreshCache(); // Refrescamos el caché global
+      } else {
+        showError(result.error || 'Error al eliminar el pedido.');
+      }
+    }
+  };
   const handleMarkPaid = (order) => {
     setSelectedOrderToPay(order);
     setShowPaymentModal(true);
@@ -507,6 +524,16 @@ const OrderHistoryPage = ({ mozoData, userRole }) => {
                         className="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-3 rounded-full shadow-md transform transition-all duration-300 hover:scale-105"
                       >
                         Cobrar
+                      </button>
+                    )}
+                    {/* --- BOTÓN AÑADIDO --- */}
+                    {/* Puede estar pendiente o pagado, pero solo para el admin */}
+                    {userRole === 'admin' && (
+                      <button
+                        onClick={() => handleDeleteOrder(order)}
+                        className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-3 rounded-full shadow-md transform transition-all duration-300 hover:scale-105"
+                      >
+                        Eliminar
                       </button>
                     )}
                     

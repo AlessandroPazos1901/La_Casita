@@ -199,6 +199,29 @@ const useOrderHistory = (mozoId, userRole) => {
     }
   };
 
+  const deleteOrder = async (orderId) => {
+    try {
+      // Llamamos a la función de la base de datos
+      const { error } = await supabase.rpc('delete_order_and_restock', {
+        order_id_to_delete: orderId
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      // Actualizamos el estado local para que el pedido desaparezca de la UI al instante
+      setOrdersHistory(prevOrders =>
+        prevOrders.filter(order => order.id !== orderId)
+      );
+
+      return { success: true };
+    } catch (err) {
+      console.error('Error al eliminar pedido:', err);
+      return { success: false, error: err.message };
+    }
+  };
+
   const refreshOrderHistory = () => {
     loadOrderHistory();
   };
@@ -274,6 +297,7 @@ const useOrderHistory = (mozoId, userRole) => {
     insertOrderItems,
     markOrderAsPaid,
     updateOrder,
+    deleteOrder,
     getOrderItems,
     deleteOrderItems,
     
