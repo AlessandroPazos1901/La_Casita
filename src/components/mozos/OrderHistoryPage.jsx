@@ -33,7 +33,7 @@ const OrderHistoryPage = ({ mozoData, userRole }) => {
 
   const [filterStatus, setFilterStatus] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState('recent');
+  const [sortBy, setSortBy] = useState('oldest');
   
   // Estados para modal de cobro
   const [showPaymentModal, setShowPaymentModal] = useState(false);

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { products } from '../services/supabaseClient';
+import { products, supabase } from '../services/supabaseClient';
 
 const useMenuItems = () => {
   const [menuItems, setMenuItems] = useState([]);
@@ -10,12 +10,30 @@ const useMenuItems = () => {
     loadMenuItems();
     
     // Suscribirse a cambios de stock
-    const subscription = subscribeToStockChanges();
-    
+    //const subscription = subscribeToStockChanges();
+    // Crea un canal para escuchar cambios en la tabla 'productos'
+    const channel = supabase
+      .channel('realtime-productos')
+      .on(
+        'postgres_changes',
+        { 
+          event: 'UPDATE', 
+          schema: 'public', 
+          table: 'productos' 
+        },
+        (payload) => {
+          console.log('Cambio de stock recibido en tiempo real:', payload.new);
+          // Llama a la función que ya tienes para actualizar el estado local
+          updateLocalStock(payload.new);
+        }
+      )
+      .subscribe();
+      
     return () => {
-      if (subscription) {
-        subscription.unsubscribe();
-      }
+      // if (subscription) {
+      //   subscription.unsubscribe();
+      // }
+      supabase.removeChannel(channel);
     };
   }, []);
 
