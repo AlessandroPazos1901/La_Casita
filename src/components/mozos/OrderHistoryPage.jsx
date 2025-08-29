@@ -44,7 +44,7 @@ const OrderHistoryPage = ({ mozoData, userRole }) => {
   const [orderToPrint, setOrderToPrint] = useState(null);
   const [showPrintModal, setShowPrintModal] = useState(false);
 
-  // Configurar react-to-print - NO uses el resultado directamente
+  // Configurar react-to-print
   const reactToPrintFn = useReactToPrint({
     contentRef: boletaRef,
     documentTitle: `Boleta-Mesa-${orderToPrint?.mesa || 'Sin-Mesa'}`,
