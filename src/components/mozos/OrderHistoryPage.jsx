@@ -425,7 +425,14 @@ const OrderHistoryPage = ({ mozoData, userRole }) => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredOrders.map(order => (
+            {filteredOrders.map(order => {
+              const itemsTotal = order.pedido_items?.reduce(
+                (sum, item) => sum + (item.cantidad * item.precio_unitario), 0
+              ) || 0;
+            
+              // Comparamos el total de la orden con la suma de los productos
+              const deliveryFee = parseFloat(order.total) - itemsTotal;
+              return (
               <div 
                 key={order.id} 
                 className="bg-white p-6 rounded-2xl shadow-lg border border-gray-200 hover:shadow-xl transition-shadow duration-300"
@@ -459,7 +466,7 @@ const OrderHistoryPage = ({ mozoData, userRole }) => {
                 </div>
 
                 {/* Items del pedido */}
-                <div className="mb-4">
+                <div className="mb-4 flex-grow">
                   <h4 className="text-lg font-semibold text-gray-700 mb-2">
                     Detalle del Pedido:
                   </h4>
@@ -498,6 +505,17 @@ const OrderHistoryPage = ({ mozoData, userRole }) => {
                         </li>
                       );
                     })}
+                    {/* ÍTEM VIRTUAL: Mostramos el delivery si existe */}
+                    {deliveryFee > 0.01 && (
+                      <li className="text-gray-700 text-sm border-b border-gray-100 pb-2 mb-2">
+                        <div className="flex justify-between">
+                          <span className="font-medium text-blue-600">Delivery</span>
+                          <span className="text-green-600 font-medium">
+                            S/. {deliveryFee.toFixed(2)}
+                          </span>
+                        </div>
+                      </li>
+                    )}
                   </ul>
                 </div>
 
@@ -545,7 +563,8 @@ const OrderHistoryPage = ({ mozoData, userRole }) => {
                   </div>
                 </div>
               </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>
