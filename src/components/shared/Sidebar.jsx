@@ -66,7 +66,12 @@ const Sidebar = ({ userRole }) => {
         label: 'Historial de Pedidos', 
         icon: '📋',
         description: 'Ver pedidos realizados'
-      }
+      },
+      // Añade el nuevo objeto al array del menú del admin
+      { path: '/atencion-clientes', 
+        label: 'Atención Cliente', 
+        description: 'Chats de WhatsApp',
+        icon: '💬' },
     ]
   };
 

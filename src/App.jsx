@@ -20,10 +20,13 @@ import PresupuestosSection from './components/admin/sections/PresupuestosSection
 import GastosSection from './components/admin/sections/GastosSection';
 import ProductosSection from './components/admin/sections/ProductosSection';
 import ReporteDiaSection from './components/admin/sections/ReporteDiaSection';
+import AtencionClientesSection from './components/admin/sections/AtencionClientesSection';
 
 // Componentes compartidos
 import Header from './components/shared/Header';
 import Sidebar from './components/shared/Sidebar';
+import RealtimeNotifier from './components/shared/RealtimeNotifier';
+
 
 // Componente de carga
 const LoadingSpinner = () => (
@@ -74,6 +77,7 @@ function App() {
     <DataCacheProvider>
       <CurrentOrderProvider mozoData={mozoData} userRole={userRole}>
         <Router>
+          <RealtimeNotifier />
           <div className="min-h-screen bg-gray-100">
             <Routes>
               {/* Rutas para mozos */}
@@ -310,6 +314,32 @@ function App() {
                             mozoData={mozoData} 
                             userRole={userRole}
                           />
+                        </main>
+                      </div>
+                    </div>
+                  </ProtectedRoute>
+                }
+              />
+              {/* Rutas CRM */}
+              <Route
+                path="/atencion-clientes"
+                element={
+                  <ProtectedRoute 
+                    allowedRoles={['admin']}
+                    userRole={userRole}
+                    isAuthenticated={isAuthenticated()}
+                  >
+                    <div className="flex h-screen bg-gray-100">
+                      <Sidebar userRole={userRole} />
+                      <div className="flex-1 flex flex-col overflow-hidden">
+                        <Header 
+                          user={user} 
+                          userRole={userRole} 
+                          mozoName={mozoName}
+                          onLogout={logout}
+                        />
+                        <main className="flex-1 overflow-y-auto p-6">
+                          <AtencionClientesSection />
                         </main>
                       </div>
                     </div>
