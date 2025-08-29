@@ -458,6 +458,16 @@ const OrderHistoryPage = ({ mozoData, userRole }) => {
                   <p className="text-gray-600 text-sm mb-3">
                     <span className="font-medium">Atendido por:</span> {getOrderCreator(order)}
                   </p>
+                  {order.servicio === 'delivery' || order.servicio === 'recojo' && (
+                    <p className="text-gray-600 text-sm mb-3">
+                      <span className="font-medium">Celular:</span> {order.celular || 'No proporcionado'}
+                    </p>
+                  )}
+                  {order.servicio === 'delivery' && (
+                    <p className="text-gray-600 text-sm mb-3">
+                      <span className="font-medium">Dirección:</span> {order.direccion}
+                    </p>
+                  )}
                   {order.estado === 'pagado' && order.metodo_pago && (
                     <p className="text-gray-600 text-sm mb-3">
                       <span className="font-medium">Método de pago:</span> {getPaymentMethodText(order.metodo_pago)}

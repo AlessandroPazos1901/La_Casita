@@ -2,6 +2,11 @@ import React from 'react';
 
 export const BoletaTermica = React.forwardRef(({ order }, ref) => {
   // Siempre renderizar el div contenedor, incluso si no hay orden
+  const itemsTotal = order.pedido_items?.reduce(
+    (sum, item) => sum + (item.cantidad * item.precio_unitario), 0
+  ) || 0;
+  
+  const deliveryFee = parseFloat(order.total) - itemsTotal;
   return (
     <div 
       ref={ref} 
@@ -26,6 +31,9 @@ export const BoletaTermica = React.forwardRef(({ order }, ref) => {
           <p><strong>Pedido:</strong> {order.numero_pedido}</p>
           <p><strong>Fecha:</strong> {formatDate(order.created_at)}</p>
           <p><strong>Atendido por:</strong> {order.mozo?.nombre || 'Admin'}</p>
+          <p><strong>Cliente:</strong> {order.mesa.split(',').last() || ''}</p>
+          <p><strong>Celular:</strong> {order.celular || ''}</p>
+          <p><strong>Direccion:</strong> {order.direccion || ''}</p>
           <div className="my-2 border-t border-dashed border-black"></div>
           
           <div className="flex justify-between font-bold">
@@ -44,6 +52,13 @@ export const BoletaTermica = React.forwardRef(({ order }, ref) => {
               </span>
             </div>
           ))}
+          {deliveryFee > 0.01 && (
+            <div className="flex justify-between my-1">
+              <span className="w-1/6">1</span>
+              <span className="flex-1">🛵 Delivery</span>
+              <span className="w-1/4 text-right">S/.{deliveryFee.toFixed(2)}</span>
+            </div>
+          )}
           
           <div className="my-2 border-t border-dashed border-black"></div>
           <div className="flex flex-col items-end">
