@@ -32,17 +32,27 @@ function ProductoFormModal({ product, onClose, onSave }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Validar que los campos numéricos sean correctos
+
+    // 1. Verificamos que los campos obligatorios no estén vacíos ANTES de procesarlos
+    if (!formData.nombre.trim() || !formData.categoria.trim() || formData.precio === '') {
+      alert('Por favor, complete todos los campos obligatorios (Nombre, Categoría, Precio).');
+      return;
+    }
+
+    // 2. Convertimos los valores a los tipos de datos correctos
     const dataToSend = {
       ...formData,
       precio: parseFloat(formData.precio),
-      stock: parseInt(formData.stock, 10)
+      stock: parseInt(formData.stock, 10) || 0 // Si el stock está vacío, lo ponemos en 0
     };
 
-    if (isNaN(dataToSend.precio) || isNaN(dataToSend.stock)) {
-      alert('El precio y el stock deben ser números válidos.');
+    // 3. Verificamos que el precio sea un número válido y no sea negativo
+    if (isNaN(dataToSend.precio) || dataToSend.precio < 0) {
+      alert('El precio debe ser un número válido y no puede ser negativo.');
       return;
     }
+    
+    // Si todas las validaciones pasan, llamamos a la función de guardado
     onSave(dataToSend);
   };
 
