@@ -11,21 +11,29 @@ const NotificationToast = ({ notification, onClose }) => {
     red: 'bg-red-100 border-red-500 text-red-700',
   };
 
-  useEffect(() => {
-    // La notificación desaparece después de 10 segundos
-    const timer = setTimeout(onClose, 10000);
-    return () => clearTimeout(timer);
-  }, [onClose]);
+//   useEffect(() => {
+//     // La notificación desaparece después de 10 segundos
+//     const timer = setTimeout(onClose, 10000);
+//     return () => clearTimeout(timer);
+//   }, [onClose]);
 
   return (
-    <div className={`fixed bottom-5 right-5 p-4 rounded-lg shadow-lg border-l-4 z-50 ${colorClasses[color] || 'bg-gray-100'}`}>
-      <div className="flex items-center">
-        <div>
-          <p className="font-bold">Nueva Solicitud de Chat</p>
-          <p>{nombre_cliente || 'Un cliente'} necesita ayuda por una {motivo}.</p>
+    // p-6 en lugar de p-4 (más padding)
+    // text-lg/text-xl (texto más grande)
+    // text-xl/text-2xl para títulos
+    // ml-6/ml-8 (más espacio entre elementos)
+    // text-3xl/text-4xl para el botón de cerrar
+    // rounded-xl/rounded-2xl (esquinas más redondeadas)
+    <div className={`fixed top-5 right-5 p-6 rounded-lg shadow-lg border-l-4 z-50 text-lg ${colorClasses[color] || 'bg-gray-100'}`}>
+        <div className="flex items-center">
+            <div className="flex-1">
+            <p className="font-bold text-xl mb-2">Nueva Solicitud de Chat</p>
+            <p className="text-lg">{nombre_cliente || 'Un cliente'} necesita ayuda por una {motivo}.</p>
+            </div>
+            <button onClick={onClose} className="ml-6 text-2xl font-bold hover:text-gray-700 hover:bg-gray-200 rounded-full w-8 h-8 flex items-center justify-center transition-colors">
+            &times;
+            </button>
         </div>
-        <button onClick={onClose} className="ml-4 text-xl font-bold">&times;</button>
-      </div>
     </div>
   );
 };
