@@ -9,9 +9,9 @@ function ReporteDiaSection() {
     refreshCache ,
     isLoading: initialLoading 
   } = useDataCache();
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toLocaleDateString('en-CA');;
   
-  const [reportDate, setReportDate] = useState(new Date().toISOString().split('T')[0]);
+  const [reportDate, setReportDate] = useState(today);
   const [isClosing, setIsClosing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
