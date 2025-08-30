@@ -16,11 +16,16 @@ function ProductoFormModal({ product, onClose, onSave }) {
   useEffect(() => {
     if (product) {
       setFormData({
-        nombre: product.nombre || '',
-        categoria: product.categoria || '',
-        precio: product.precio || '',
-        stock: product.stock || '',
-        descripcion: product.descripcion || ''
+        nombre: product.nombre ?? '',
+        categoria: product.categoria ?? '',
+        precio: product.precio ?? '',
+        stock: product.stock ?? '',
+        descripcion: product.descripcion ?? ''
+      });
+    }else {
+      // Aseguramos que el formulario se vacíe si es para crear uno nuevo
+      setFormData({
+        nombre: '', categoria: '', precio: '', stock: '', descripcion: ''
       });
     }
   }, [product]);
@@ -90,7 +95,7 @@ function ProductoFormModal({ product, onClose, onSave }) {
             </div>
             <div>
               <label htmlFor="stock" className="block text-sm font-bold mb-2">Stock</label>
-              <input type="number" name="stock" value={formData.stock} onChange={handleChange} required step="1" className="w-full p-2 border rounded"/>
+              <input type="number" name="stock" value={formData.stock} onChange={handleChange} step="1" className="w-full p-2 border rounded" placeholder="0"/>
             </div>
           </div>
 

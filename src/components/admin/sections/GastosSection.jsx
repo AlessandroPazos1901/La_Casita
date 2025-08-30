@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import useDashboard from '../../../hooks/useDashboard';
 import FormularioGasto from '../forms/FormularioGasto';
+import useMessages from '../../../hooks/useMessages';
 
 function AddPendingPaymentModal({
   expenseCategories,
@@ -103,7 +104,19 @@ function AddPendingPaymentModal({
 
 
 function GastosSection() {
-  const { gastos, categorias, loading, error, addGasto, updateGasto, deleteGasto, refreshData, addCuentaPendiente, deleteCuentaPendiente, cuentasPendientes } = useDashboard();
+  const { 
+    gastos, 
+    categorias,
+    loading,
+    error,
+    addGasto,
+    updateGasto,
+    deleteGasto,
+    refreshData,
+    addCuentaPendiente,
+    deleteCuentaPendiente,
+    cuentasPendientes
+    } = useDashboard();
   const [showAddPendingModal, setShowAddPendingModal] = useState(false);
   const [newPendingDescription, setNewPendingDescription] = useState('');
   const [newPendingDueDate, setNewPendingDueDate] = useState('');
@@ -111,7 +124,7 @@ function GastosSection() {
   const [newPendingCategory, setNewPendingCategory] = useState('');
   const [editingGasto, setEditingGasto] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
-
+  const { showSuccess, showError } = useMessages();
   const expenseCategories = (categorias || []).map(cat => cat.nombre);
 
   // DESPUÉS de todos los hooks, los returns condicionales
@@ -184,11 +197,33 @@ function GastosSection() {
       }
     }
   };
+  // FUNCIÓN AUXILIAR PARA CREAR EL ENLACE DE  GOOGLE CALENDAR
+  const createGoogleCalendarLink = (cuenta) => {
+    const baseURL = "https://calendar.google.com/calendar/render?action=TEMPLATE";
+    
+    // Título del evento
+    const title = encodeURIComponent(`Pagar: ${cuenta.descripcion}`);
+    
+    // Formateamos la fecha para que Google la entienda (YYYYMMDD)
+    const fecha = new Date(cuenta.fecha_vencimiento + 'T00:00:00'); // Asegura la fecha local
+    const year = fecha.getFullYear();
+    const month = String(fecha.getMonth() + 1).padStart(2, '0');
+    const day = String(fecha.getDate()).padStart(2, '0');
+    const fechaFormateada = `${year}${month}${day}`;
+    const dates = `${fechaFormateada}/${fechaFormateada}`; // Evento de todo el día
+    
+    // Descripción del evento
+    const details = encodeURIComponent(
+      `Monto a pagar: S/. ${cuenta.monto.toFixed(2)}\nCategoría: ${cuenta.categoria}`
+    );
+
+    return `${baseURL}&text=${title}&dates=${dates}&details=${details}`;
+  };
 
   const handleAddPendingPayment = async (e) => {
     e.preventDefault();
     if (!newPendingCategory || !newPendingDescription || !newPendingAmount || parseFloat(newPendingAmount) <= 0 || !newPendingDueDate) {
-      alert('Por favor, complete todos los campos obligatorios para el pago pendiente y asegúrese de que el monto sea positivo.');
+      alert('Por favor, complete todos los campos obligatorios para el pago pendiente.');
       return;
     }
 
@@ -201,6 +236,13 @@ function GastosSection() {
 
     const result = await addCuentaPendiente(newPending);
     if (result.success) {
+      // Creamos el enlace y lo abrimos en una nueva pestaña
+      const calendarLink = createGoogleCalendarLink(newPending);
+      window.open(calendarLink, '_blank');
+
+      showSuccess('Cuenta pendiente creada. Revisa la nueva pestaña para guardarla en Google Calendar.');
+      
+      
       setNewPendingCategory('');
       setNewPendingDescription('');
       setNewPendingAmount('');

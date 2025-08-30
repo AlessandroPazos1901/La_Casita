@@ -103,7 +103,6 @@ function DashboardSection() {
         totalPedidos, promedioTicket: totalPedidos > 0 ? totalIngresos / totalPedidos : 0,
         ingresosPorOrigen, gastosPorCategoria, platosVendidos: platosArray,
         presupuestos: presupuestosResult.data || [],
-        platosVendidos: platosArray,
         gastosDelMesPorCategoria
       });
 
