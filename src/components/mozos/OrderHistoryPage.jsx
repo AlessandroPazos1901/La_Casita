@@ -31,7 +31,7 @@ const OrderHistoryPage = ({ mozoData, userRole }) => {
     clearMessage 
   } = useMessages();
 
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('pendiente');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('oldest');
   

@@ -1,5 +1,5 @@
 // MenuPage.jsx - Optimizado para móvil
-import React, { useState, useMemo} from 'react';
+import React, { useState, useMemo, useRef} from 'react';
 import { useNavigate } from 'react-router-dom';
 import useMenuItems from '../../hooks/useMenuItems';
 import { useCurrentOrder } from '../../contexts/CurrentOrderContext'; 
@@ -8,6 +8,8 @@ import MessageDisplay from '../auth/MessageDisplay';
 import CollapsibleCategory from './CollapsibleCategory';
 import CustomizeDishModal from './CustomizeDishModal';
 import MobileCart from './MobileCart';
+import { Comanda } from '../shared/Comanda';
+import { useReactToPrint } from 'react-to-print';
 
 const MenuPage = ({ mozoData, userRole }) => {
   const navigate = useNavigate();
@@ -47,6 +49,13 @@ const MenuPage = ({ mozoData, userRole }) => {
   const [showCustomizeModal, setShowCustomizeModal] = useState(false);
   const [selectedDishToCustomize, setSelectedDishToCustomize] = useState(null);
   const [mobileCartOpen, setMobileCartOpen] = useState(false);
+
+  const comandaRef = useRef();
+  const [comandaData, setComandaData] = useState(null);
+
+  const handlePrint = useReactToPrint({
+    contentRef: comandaRef,
+  });
 
   const categories = useMemo(() => {
     return [...new Set(menuItems.flatMap(cat => cat.items.map(item => item.categoria)))];
@@ -130,7 +139,32 @@ const MenuPage = ({ mozoData, userRole }) => {
           ? `¡Pedido de la mesa ${tableNumber} actualizado con éxito!`
           : `¡Pedido para mesa ${tableNumber} enviado con éxito!`
       );
-      setMobileCartOpen(false);
+      const orderData = {
+        mesa: tableNumber,
+        created_at: new Date().toISOString(),
+        mozo: mozoData,
+        pedido_items: currentOrder
+      };
+
+      // Si es edición, preparar cambios (esto lo implementaremos después)
+      const changesData = isEditing ? {
+        // Aquí irán los cambios cuando los implementemos
+      } : null;
+
+      setComandaData({ order: orderData, changes: changesData });
+
+      // Imprimir después de un pequeño delay para asegurar que el estado se actualice
+    setTimeout(() => {
+      if (comandaRef.current) {
+        handlePrint();
+        // Limpiar datos después de 1 segundo para desmontar el componente
+        setTimeout(() => {
+          setComandaData(null);
+        }, 1000);
+      }
+    }, 100);
+
+    setMobileCartOpen(false);
     } else {
       showError(result.error || 'Error al procesar el pedido');
     }
@@ -493,6 +527,17 @@ const MenuPage = ({ mozoData, userRole }) => {
           </span>
         )}
       </button>
+      {/* Componente oculto para impresión */}
+      {comandaData && (
+        <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
+          <Comanda
+            ref={comandaRef}
+            order={comandaData.order}
+            changes={comandaData.changes}
+          />
+        </div>
+      )}
+
     </div>
   );
 };
