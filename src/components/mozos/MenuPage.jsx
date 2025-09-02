@@ -10,6 +10,7 @@ import CustomizeDishModal from './CustomizeDishModal';
 import MobileCart from './MobileCart';
 import { Comanda } from '../shared/Comanda';
 import { useReactToPrint } from 'react-to-print';
+import usePrint from '../../hooks/usePrint';
 
 const MenuPage = ({ mozoData, userRole }) => {
   const navigate = useNavigate();
@@ -58,7 +59,11 @@ const MenuPage = ({ mozoData, userRole }) => {
   const handlePrint = useReactToPrint({
     contentRef: comandaRef,
   });
-
+  const { 
+    printOrder, 
+    isLoading: isPrinting,
+    error: printError 
+  } = usePrint();
   const categories = useMemo(() => {
     return [...new Set(menuItems.flatMap(cat => cat.items.map(item => item.categoria)))];
   }, [menuItems]);
@@ -141,36 +146,50 @@ const MenuPage = ({ mozoData, userRole }) => {
           ? `¡Pedido de la mesa ${tableNumber} actualizado con éxito!`
           : `¡Pedido para mesa ${tableNumber} enviado con éxito!`
       );
+      
       const orderData = {
         mesa: tableNumber,
         created_at: new Date().toISOString(),
         mozo: mozoData,
         pedido_items: currentOrder
       };
+      
       console.log('Is editing:', isEditing);
       console.log('Editing order ID:', editingOrderId);
       console.log('Has original items:', !!originalOrderItems);
 
-      // Si es edición, preparar cambios (esto lo implementaremos después)
+      // Calcular cambios si es edición
       console.log('Original items:', originalOrderItems);
       console.log('Current items:', currentOrder);
       console.log('Changes calculated:', calcularCambiosPedido(originalOrderItems, currentOrder));
       const changesData = (isEditing && originalOrderItems) ? calcularCambiosPedido(originalOrderItems, currentOrder) : null;
 
+      // NUEVA LÓGICA: Impresión térmica automática
+      try {
+        console.log('Enviando a impresión térmica...');
+        await printOrder(orderData, changesData);
+        console.log('✅ Impresión térmica exitosa');
+      } catch (printErr) {
+        console.error('❌ Error en impresión térmica:', printErr);
+        // Mostrar error pero no bloquear el flujo
+        showError(`Pedido enviado correctamente, pero hubo un problema con la impresión: ${printErr.message}`);
+      }
+
+      // MANTENER IMPRESIÓN ACTUAL (opcional - puedes comentar/eliminar esta sección)
       setComandaData({ order: orderData, changes: changesData });
 
       // Imprimir después de un pequeño delay para asegurar que el estado se actualice
-    setTimeout(() => {
-      if (comandaRef.current) {
-        handlePrint();
-        // Limpiar datos después de 1 segundo para desmontar el componente
-        setTimeout(() => {
-          setComandaData(null);
-        }, 1000);
-      }
-    }, 100);
+      setTimeout(() => {
+        if (comandaRef.current) {
+          handlePrint(); // Tu función de impresión actual
+          // Limpiar datos después de 1 segundo para desmontar el componente
+          setTimeout(() => {
+            setComandaData(null);
+          }, 1000);
+        }
+      }, 100);
 
-    setMobileCartOpen(false);
+      setMobileCartOpen(false);
     } else {
       showError(result.error || 'Error al procesar el pedido');
     }
