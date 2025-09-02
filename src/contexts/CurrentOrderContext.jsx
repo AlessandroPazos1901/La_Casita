@@ -12,6 +12,20 @@ export const CurrentOrderProvider = ({ children, mozoData, userRole }) => {
   const [editingOrderId, setEditingOrderId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [originalOrderItems, setOriginalOrderItems] = useState(null);
+  // Recuperar items originales del localStorage al inicializar
+  React.useEffect(() => {
+    if (editingOrderId && !originalOrderItems) {
+      const savedOriginalItems = localStorage.getItem('editing_original_items');
+      if (savedOriginalItems) {
+        try {
+          setOriginalOrderItems(JSON.parse(savedOriginalItems));
+        } catch (e) {
+          console.error('Error parsing saved original items:', e);
+        }
+      }
+    }
+  }, [editingOrderId, originalOrderItems]);
 
   const { decrementStock, incrementStock, adjustStock } = useMenuItems();
   const { 
@@ -223,6 +237,195 @@ export const CurrentOrderProvider = ({ children, mozoData, userRole }) => {
       return { success: false, error: err.message };
     }
   };
+  const calcularCambiosPedido = (original, nuevo) => {
+      const cambios = { agregados: [], eliminados: [], modificados: [] };
+
+      // Agrupamos por ID de producto para contar las cantidades
+      const originalGrouped = (original || []).reduce((acc, item) => {
+        acc[item.id] = (acc[item.id] || 0) + item.quantity;
+        return acc;
+      }, {});
+      const nuevoGrouped = (nuevo || []).reduce((acc, item) => {
+        acc[item.id] = (acc[item.id] || 0) + item.quantity;
+        return acc;
+      }, {});
+
+      // También agrupamos los items completos por ID para comparar especificaciones
+      const originalItems = (original || []).reduce((acc, item) => {
+        if (!acc[item.id]) acc[item.id] = [];
+        acc[item.id].push(item);
+        return acc;
+      }, {});
+      const nuevoItems = (nuevo || []).reduce((acc, item) => {
+        if (!acc[item.id]) acc[item.id] = [];
+        acc[item.id].push(item);
+        return acc;
+      }, {});
+
+      const allProductIds = new Set([...Object.keys(originalGrouped).map(Number), ...Object.keys(nuevoGrouped).map(Number)]);
+
+      allProductIds.forEach(productId => {
+        const originalQty = originalGrouped[productId] || 0;
+        const newQty = nuevoGrouped[productId] || 0;
+        const diff = newQty - originalQty;
+
+        if (diff > 0) {
+          // Se agregaron items
+          const productInfo = (nuevo || []).find(item => item.id == productId);
+        
+          // Obtenemos las notas de los últimos 'diff' items individuales, que son los nuevos
+          const addedNotes = (productInfo.individuals || [])
+            .slice(-diff) // Tomamos los últimos N elementos del array
+            .map(ind => ind.notes || ind.notas) // Obtenemos la nota de cada uno
+            .filter(note => note && note.trim() !== ''); // Filtramos las que estén vacías
+
+          cambios.agregados.push({ ...productInfo, quantity: diff, notas: addedNotes });
+
+          // TAMBIÉN verificamos si hubo cambios en las especificaciones de los items existentes
+          if (originalQty > 0) {
+            const originalItemsForProduct = originalItems[productId] || [];
+            const nuevoItemsForProduct = nuevoItems[productId] || [];
+            
+            // Recolectamos especificaciones de los items que ya existían (no los nuevos)
+            const originalSpecs = [];
+            const nuevasSpecs = [];
+            
+            originalItemsForProduct.forEach(item => {
+              (item.individuals || []).forEach(ind => {
+                const nota = ind.notes || ind.notas || '';
+                originalSpecs.push(nota.trim());
+              });
+            });
+            
+            // Para las nuevas especificaciones, tomamos solo las de los items existentes (no los nuevos)
+            nuevoItemsForProduct.forEach(item => {
+              const individualsExistentes = (item.individuals || []).slice(0, originalQty); // Solo los primeros (existentes)
+              individualsExistentes.forEach(ind => {
+                const nota = ind.notes || ind.notas || '';
+                nuevasSpecs.push(nota.trim());
+              });
+            });
+            
+            // Ordenamos para comparar correctamente
+            originalSpecs.sort();
+            nuevasSpecs.sort();
+            
+            // Verificamos si hay diferencias en los items existentes
+            const hayChanges = originalSpecs.length !== nuevasSpecs.length || 
+                              originalSpecs.some((spec, index) => spec !== nuevasSpecs[index]);
+            
+            if (hayChanges) {
+              const productInfo = nuevoItemsForProduct[0];
+              cambios.modificados.push({
+                ...productInfo,
+                quantity: originalQty, // Cantidad de los items que se modificaron
+                especificacionesOriginales: originalSpecs,
+                especificacionesNuevas: nuevasSpecs
+              });
+            }
+          }
+
+        } else if (diff < 0) {
+          // Se eliminaron items
+          const productInfo = (original || []).find(item => item.id == productId);
+          
+          // Obtenemos las especificaciones de los items eliminados
+          const eliminatedNotes = (productInfo.individuals || [])
+            .slice(diff) // Tomamos los últimos N elementos que fueron eliminados (diff es negativo)
+            .map(ind => ind.notes || ind.notas) // Obtenemos la nota de cada uno
+            .filter(note => note && note.trim() !== ''); // Filtramos las que estén vacías
+          
+          cambios.eliminados.push({ ...productInfo, quantity: -diff, notas: eliminatedNotes });
+          
+          // TAMBIÉN verificamos si hubo cambios en las especificaciones de los items que quedaron
+          if (newQty > 0) {
+            const originalItemsForProduct = originalItems[productId] || [];
+            const nuevoItemsForProduct = nuevoItems[productId] || [];
+            
+            // Recolectamos especificaciones de los items que quedaron
+            const originalSpecs = [];
+            const nuevasSpecs = [];
+            
+            // Para las especificaciones originales, tomamos solo las de los items que NO se eliminaron
+            originalItemsForProduct.forEach(item => {
+              const individualsQueQuedan = (item.individuals || []).slice(0, newQty); // Solo los primeros (que quedaron)
+              individualsQueQuedan.forEach(ind => {
+                const nota = ind.notes || ind.notas || '';
+                originalSpecs.push(nota.trim());
+              });
+            });
+            
+            // Para las nuevas especificaciones, tomamos todas las que hay ahora
+            nuevoItemsForProduct.forEach(item => {
+              (item.individuals || []).forEach(ind => {
+                const nota = ind.notes || ind.notas || '';
+                nuevasSpecs.push(nota.trim());
+              });
+            });
+            
+            // Ordenamos para comparar correctamente
+            originalSpecs.sort();
+            nuevasSpecs.sort();
+            
+            // Verificamos si hay diferencias en los items que quedaron
+            const hayChanges = originalSpecs.length !== nuevasSpecs.length || 
+                              originalSpecs.some((spec, index) => spec !== nuevasSpecs[index]);
+            
+            if (hayChanges) {
+              const productInfo = nuevoItemsForProduct[0];
+              cambios.modificados.push({
+                ...productInfo,
+                quantity: newQty, // Cantidad de los items que quedaron
+                especificacionesOriginales: originalSpecs,
+                especificacionesNuevas: nuevasSpecs
+              });
+            }
+          }
+        
+        } else if (diff === 0 && originalQty > 0) {
+          // Misma cantidad, verificamos si hay cambios en especificaciones
+          const originalItemsForProduct = originalItems[productId] || [];
+          const nuevoItemsForProduct = nuevoItems[productId] || [];
+          
+          // Recolectamos todas las especificaciones originales y nuevas
+          const originalSpecs = [];
+          const nuevasSpecs = [];
+          
+          originalItemsForProduct.forEach(item => {
+            (item.individuals || []).forEach(ind => {
+              const nota = ind.notes || ind.notas || '';
+              originalSpecs.push(nota.trim());
+            });
+          });
+          
+          nuevoItemsForProduct.forEach(item => {
+            (item.individuals || []).forEach(ind => {
+              const nota = ind.notes || ind.notas || '';
+              nuevasSpecs.push(nota.trim());
+            });
+          });
+          
+          // Ordenamos para comparar correctamente
+          originalSpecs.sort();
+          nuevasSpecs.sort();
+          
+          // Verificamos si hay diferencias
+          const hayChanges = originalSpecs.length !== nuevasSpecs.length || 
+                            originalSpecs.some((spec, index) => spec !== nuevasSpecs[index]);
+          
+          if (hayChanges) {
+            const productInfo = nuevoItemsForProduct[0]; // Tomamos info del primer item
+            cambios.modificados.push({
+              ...productInfo,
+              especificacionesOriginales: originalSpecs,
+              especificacionesNuevas: nuevasSpecs
+            });
+          }
+        }
+      });
+
+      return cambios;
+  };
 
   const updateExistingOrder = async (orderId, total) => {
     console.log("Datos en currentOrder ANTES de actualizar:", JSON.stringify(currentOrder, null, 2));
@@ -350,7 +553,9 @@ export const CurrentOrderProvider = ({ children, mozoData, userRole }) => {
       setCurrentOrder(existingItems);
       setTableNumber(orderToEdit.mesa);
       setEditingOrderId(orderToEdit.id);
-
+      setOriginalOrderItems(JSON.parse(JSON.stringify(existingItems)));
+      // Guardar en localStorage para persistir durante la navegación
+      localStorage.setItem('editing_original_items', JSON.stringify(existingItems));
       return { success: true };
     } catch (err) {
       setError('Error al cargar pedido para edición');
@@ -362,6 +567,8 @@ export const CurrentOrderProvider = ({ children, mozoData, userRole }) => {
     setCurrentOrder([]);
     setTableNumber('');
     setEditingOrderId(null);
+    setOriginalOrderItems(null);
+    localStorage.removeItem('editing_original_items');
     setError(null);
   };
 
@@ -377,12 +584,14 @@ export const CurrentOrderProvider = ({ children, mozoData, userRole }) => {
     currentOrder,
     tableNumber,
     editingOrderId,
+    originalOrderItems,
     loading,
     error,
     addToOrder,
     removeItemFromOrder,
     updateOrderItem,
     sendOrder,
+    calcularCambiosPedido ,
     loadOrderForEditing,
     clearCurrentOrder,
     setTableNumber,

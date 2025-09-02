@@ -20,6 +20,8 @@ const MenuPage = ({ mozoData, userRole }) => {
     updateLocalStock 
   } = useMenuItems();
   const {
+    originalOrderItems,
+    calcularCambiosPedido,
     currentOrder,
     tableNumber,
     editingOrderId,
@@ -145,11 +147,15 @@ const MenuPage = ({ mozoData, userRole }) => {
         mozo: mozoData,
         pedido_items: currentOrder
       };
+      console.log('Is editing:', isEditing);
+      console.log('Editing order ID:', editingOrderId);
+      console.log('Has original items:', !!originalOrderItems);
 
       // Si es edición, preparar cambios (esto lo implementaremos después)
-      const changesData = isEditing ? {
-        // Aquí irán los cambios cuando los implementemos
-      } : null;
+      console.log('Original items:', originalOrderItems);
+      console.log('Current items:', currentOrder);
+      console.log('Changes calculated:', calcularCambiosPedido(originalOrderItems, currentOrder));
+      const changesData = (isEditing && originalOrderItems) ? calcularCambiosPedido(originalOrderItems, currentOrder) : null;
 
       setComandaData({ order: orderData, changes: changesData });
 
