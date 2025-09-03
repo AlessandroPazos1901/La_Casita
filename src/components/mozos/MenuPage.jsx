@@ -176,7 +176,7 @@ const MenuPage = ({ mozoData, userRole }) => {
       }
 
       // MANTENER IMPRESIÓN ACTUAL (opcional - puedes comentar/eliminar esta sección)
-      setComandaData({ order: orderData, changes: changesData });
+      // setComandaData({ order: orderData, changes: changesData });
 
       // Imprimir después de un pequeño delay para asegurar que el estado se actualice
       setTimeout(() => {
