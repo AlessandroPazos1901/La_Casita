@@ -6,7 +6,7 @@ const usePrint = () => {
   const [error, setError] = useState(null);
   
   // IP del servidor local 
-  const PRINT_SERVER_URL = 'http://192.168.1.47:3001'; 
+  const PRINT_SERVER_URL = 'https://printserver.local:3001'; 
   
   const printOrder = useCallback(async (order, changes = null) => {
     setIsLoading(true);
