@@ -6,7 +6,7 @@ const usePrint = () => {
   const [error, setError] = useState(null);
   
   // IP del servidor local 
-  const printserver = import.meta.env.PRINT_SERVER_URL; 
+  const PRINT_SERVER_URL = 'https://192.168.1.47:3001'; 
   
   const printOrder = useCallback(async (order, changes = null) => {
     setIsLoading(true);
@@ -15,7 +15,7 @@ const usePrint = () => {
     try {
       console.log('Enviando pedido a imprimir:', { mesa: order.mesa, changes: !!changes });
       
-      const response = await fetch(`${printserver}/print`, {
+      const response = await fetch(`${PRINT_SERVER_URL}/print`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -48,14 +48,14 @@ const usePrint = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [printserver]);
+  }, [PRINT_SERVER_URL]);
   
   const testPrint = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     
     try {
-      const response = await fetch(`${printserver}/test-print`, {
+      const response = await fetch(`${PRINT_SERVER_URL}/test-print`, {
         method: 'POST',
       });
       
@@ -84,16 +84,16 @@ const usePrint = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [printserver]);
+  }, [PRINT_SERVER_URL]);
   
   const checkServerStatus = useCallback(async () => {
     try {
-      const response = await fetch(`${printserver}/test`);
+      const response = await fetch(`${PRINT_SERVER_URL}/test`);
       return response.ok;
     } catch (err) {
       return false;
     }
-  }, [printserver]);
+  }, [PRINT_SERVER_URL]);
   
   return {
     printOrder,
