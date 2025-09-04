@@ -1,4 +1,4 @@
-// OrderHistoryPage.jsx - Solución corregida para impresión
+// OrderHistoryPage.jsx
 
 import React, { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -97,14 +97,6 @@ const OrderHistoryPage = ({ mozoData, userRole }) => {
     }
   }, [error, showError]);
 
-  // Función para obtener solo pedidos de hoy
-  const getTodayOrdersOnly = () => {
-    const today = new Date().toDateString();
-    return ordersHistory.filter(order => {
-      const orderDate = new Date(order.created_at).toDateString();
-      return orderDate === today;
-    });
-  };
 
   const handleDeleteOrder = async (orderToDelete) => {
     // Siempre pedir confirmación para acciones destructivas.
@@ -161,15 +153,14 @@ const OrderHistoryPage = ({ mozoData, userRole }) => {
     const result = loadOrderForEditing(orderToEdit);
     if (result.success) {
       showSuccess(`Pedido de la mesa ${orderToEdit.mesa} cargado. Puedes agregar más items.`);
-      const menuPath = userRole === 'admin' ? '/admin-menu' : '/menu';
-      navigate(menuPath);
+      navigate('/menu');
     } else {
       showError(result.error || 'Error al cargar el pedido para edición');
     }
   };
 
   const getFilteredOrders = () => {
-    let filtered = getTodayOrdersOnly();
+    let filtered = [...ordersHistory];
 
     if (filterStatus !== 'all') {
       filtered = filtered.filter(order => order.estado === filterStatus);
@@ -258,10 +249,10 @@ const OrderHistoryPage = ({ mozoData, userRole }) => {
 
   const filteredOrders = getFilteredOrders();
   const todayStats = {
-    totalOrders: getTodayOrdersOnly().length,
-    pendingOrders: getTodayOrdersOnly().filter(o => o.estado === 'pendiente').length,
-    paidOrders: getTodayOrdersOnly().filter(o => o.estado === 'pagado').length,
-    totalSales: getTodayOrdersOnly()
+    totalOrders: ordersHistory.length,
+    pendingOrders: ordersHistory.filter(o => o.estado === 'pendiente').length,
+    paidOrders: ordersHistory.filter(o => o.estado === 'pagado').length,
+    totalSales: ordersHistory
       .filter(o => o.estado === 'pagado')
       .reduce((sum, o) => sum + parseFloat(o.total || 0), 0)
   };
@@ -413,12 +404,12 @@ const OrderHistoryPage = ({ mozoData, userRole }) => {
           <div className="text-center py-12">
             <div className="text-6xl mb-4">📋</div>
             <p className="text-gray-500 text-lg font-medium">
-              {getTodayOrdersOnly().length === 0 
+              {ordersHistory.length === 0 
                 ? 'No hay pedidos hoy' 
                 : 'No se encontraron pedidos con los filtros aplicados'}
             </p>
             <p className="text-gray-400 text-sm mt-2">
-              {getTodayOrdersOnly().length === 0 
+              {ordersHistory.length === 0 
                 ? 'Los pedidos de hoy aparecerán aquí'
                 : 'Intenta ajustar los filtros de búsqueda'}
             </p>

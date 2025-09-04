@@ -1,140 +1,124 @@
-import { useState, useEffect } from 'react';
-import { auth, userRoles } from '../services/supabaseClient';
+import { useState, useEffect, useCallback } from 'react';
+import { auth } from '../services/supabaseClient';
 
 const useAuth = () => {
-  // const { clearCache } = useDataCache();
   const [user, setUser] = useState(null);
-  const [userRole, setUserRole] = useState(null);
+  const [profile, setProfile] = useState(null);
   const [mozoData, setMozoData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [initialized, setInitialized] = useState(false);
 
-  // Verificar sesión al cargar la aplicación
-  useEffect(() => {
-    checkAuthState();
-  }, []);
-
-  const checkAuthState = async () => {
+  const checkAuthState = useCallback(async () => {
+    console.log('AUTH: Verificando estado de autenticación...');
     try {
       const currentUser = await auth.getCurrentUser();
+      console.log('AUTH: currentUser:', currentUser);
       
       if (currentUser) {
         setUser(currentUser);
         
-        // Determinar rol
-        const role = await userRoles.determineRole(currentUser);
-        setUserRole(role);
+        const userProfile = await auth.getUserProfile(currentUser);
+        console.log('AUTH: userProfile:', userProfile);
+        setProfile(userProfile);
         
-        // Si es mozo, obtener datos del mozo
-        if (role === 'mozo') {
-          const mozoInfo = await userRoles.getMozoData(currentUser);
+        if (userProfile?.role === 'mozo') {
+          const mozoInfo = await auth.getMozoData(userProfile);
+          console.log('AUTH: mozoInfo:', mozoInfo);
           setMozoData(mozoInfo);
         }
       }
     } catch (error) {
-      console.error('Error verificando autenticación:', error);
-      // Limpiar sesión si hay error
-      await logout();
+      console.error('AUTH: Error en checkAuthState:', error);
+      setUser(null);
+      setProfile(null);
+      setMozoData(null);
     } finally {
       setLoading(false);
-      setInitialized(true);
+      console.log('AUTH: Verificación de estado finalizada.');
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    checkAuthState();
+  }, [checkAuthState]);
 
   const login = async (username, password) => {
     try {
-      console.log('useAuth login called with:', { username, password: '***', types: { username: typeof username, password: typeof password } });
-      
-      const { user: authUser, error } = await auth.signIn(username, password);
-      
+      console.log('LOGIN: 1. Iniciando función de login...');
+      const email = `${username.trim()}@gmail.com`;
+
+      // Hacemos el signIn
+      const { user: authUser, error } = await auth.signIn(email, password);
+
+      // Si hay un error, lo manejamos y salimos
       if (error) {
-        return { success: false, error };
+        console.error('LOGIN: Error de Supabase detectado en signIn:', error.message);
+        return { success: false, error: 'Usuario o contraseña incorrectos.' };
+      }
+      
+      console.log('LOGIN: 2. SignIn exitoso. Usuario recibido:', authUser);
+
+      // Si signIn fue exitoso, authUser no debería ser nulo, pero es bueno comprobarlo
+      if (!authUser) {
+        return { success: false, error: 'No se recibió el usuario después del login.' };
       }
 
-      console.log('Login successful, setting user:', authUser);
+      // 3. Usamos el 'authUser' que acabamos de recibir para actualizar el estado
       setUser(authUser);
-      
-      // Determinar rol (ya viene en el usuario)
-      const role = authUser.role;
-      console.log('Setting role:', role);
-      setUserRole(role);
-      
-      // Si es mozo, obtener datos del mozo
-      if (role === 'mozo') {
-        console.log('Getting mozo data for mozo_id:', authUser.mozo_id);
-        const mozoInfo = await userRoles.getMozoData(authUser);
-        console.log('Mozo data retrieved:', mozoInfo);
+      const userProfile = await auth.getUserProfile(authUser);
+      console.log('LOGIN: 3. Perfil obtenido:', userProfile);
+      setProfile(userProfile);
+
+      // 4. Si es mozo, obtenemos sus datos
+      if (userProfile?.role === 'mozo') {
+        const mozoInfo = await auth.getMozoData(userProfile);
+        console.log('LOGIN: 4. Datos de mozo obtenidos:', mozoInfo);
         setMozoData(mozoInfo);
       }
 
-      return { success: true, user: authUser, role };
+      console.log('LOGIN: 5. Login y actualización de estado completados.');
+      return { success: true };
+
     } catch (error) {
-      console.error('Error in useAuth login:', error);
-      return { success: false, error: error.message };
+      console.error('LOGIN: Error fatal atrapado en el bloque catch de login:', error);
+      return { success: false, error: 'Ocurrió un error inesperado.' };
     }
   };
 
   const logout = async () => {
     try {
+      console.log('LOGOUT: 1. Cierre de sesión iniciado.');
       await auth.signOut();
       setUser(null);
-      setUserRole(null);
+      setProfile(null);
       setMozoData(null);
-      return { success: true };
+      // return { success: true };
+      console.log('LOGOUT: 2. Estado local limpiado.');
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
-      return { success: false, error: error.message };
+      //return { success: false, error: error.message };
     }
   };
-
-  const isAuthenticated = () => {
-    return user !== null;
-  };
-
-  const hasRole = (role) => {
-    return userRole === role;
-  };
-
-  const hasAnyRole = (roles) => {
-    return roles.includes(userRole);
-  };
-
-  // Función para refrescar los datos del usuario
-  const refreshUserData = async () => {
-    if (!user) return;
-
-    try {
-      // Si es mozo, refrescar datos del mozo
-      if (userRole === 'mozo') {
-        const mozoInfo = await userRoles.getMozoData(user);
-        setMozoData(mozoInfo);
-      }
-    } catch (error) {
-      console.error('Error refrescando datos del usuario:', error);
-    }
-  };
+  
+  const userRole = profile?.role || null;
 
   return {
     // Estado
     user,
-    userRole,
+    profile,
     mozoData,
+    userRole,
     loading,
-    initialized,
     
     // Funciones
     login,
     logout,
-    isAuthenticated,
-    hasRole,
-    hasAnyRole,
-    refreshUserData,
-    checkAuthState,
-    
-    // Información útil
+
+    // Información útil y computada
+    isAuthenticated: !!user,
     isAdmin: userRole === 'admin',
     isMozo: userRole === 'mozo',
-    username: user?.username || null,
+    isCajero: userRole === 'cajero',
+    hasManagementAccess: userRole === 'admin' || userRole === 'cajero',
     mozoId: mozoData?.id || null,
     mozoName: mozoData?.nombre || null
   };

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import useDashboard from '../../../hooks/useDashboard';
 import ProductoFormModal from '../forms/ProductoFormModal'; 
 
+// Cambiar el uso de alerte por react-toastify o sonner
 function ProductosSection() {
   const { 
     productos, 

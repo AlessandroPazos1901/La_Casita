@@ -10,55 +10,45 @@ export const supabase = createClient(supabaseUrl, supabaseKey);
 // Funciones auxiliares para autenticación personalizada
 export const auth = {
   // Iniciar sesión con username y password
-  signIn: async (username, password) => {
-    try {
-      console.log('Buscando usuario:', username, typeof username);
-      
-      // Buscar usuario en la tabla usuarios
-      const { data: user, error } = await supabase
-        .from('usuarios')
-        .select('*')
-        .eq('username', String(username)) // Forzar a string
-        .eq('activo', true)
-        .single();
+  signIn: async (email, password) => {
+      try {
+        // Esta es la función segura de Supabase
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
 
-      console.log('Resultado query:', { user, error });
+        // Si hay un error (ej. contraseña incorrecta), Supabase lo reporta
+        if (error) {
+          throw error;
+        }
+        
+        // Si el inicio de sesión es exitoso, devolvemos el usuario
+        // ¡Supabase se encarga de gestionar la sesión de forma segura por nosotros!
+        return { user: data.user, session: data.session, error: null };
 
-      if (error || !user) {
-        throw new Error('Usuario no encontrado o inactivo');
+      } catch (error) {
+        console.error('Error en signIn:', error.message);
+        // Devolvemos el mensaje de error para mostrarlo en la interfaz
+        return { user: null, error: error.message };
       }
+  },
 
-      // Verificar contraseña (en producción deberías usar hash)
-      if (user.password !== String(password)) {
-        throw new Error('Contraseña incorrecta');
-      }
-
-      // Guardar sesión en localStorage
-      const sessionData = {
-        user: {
-          id: user.id,
-          username: user.username,
-          role: user.role,
-          mozo_id: user.mozo_id,
-          created_at: user.created_at
-        },
-        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 horas
-      };
-
-      localStorage.setItem('restaurant_session', JSON.stringify(sessionData));
-      
-      return { user: sessionData.user, error: null };
-    } catch (error) {
-      console.error('Error en signIn:', error);
-      return { user: null, error: error.message };
-    }
+  // Registra un nuevo usuario.
+  signUp: async (email, password, metadata = {}) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: metadata }
+    });
+    if (error) throw error;
+    return { user: data.user, error: null };
   },
 
   // Cerrar sesión
   signOut: async () => {
     try {
-      localStorage.removeItem('restaurant_session');
-      return { error: null };
+      return await supabase.auth.signOut();
     } catch (error) {
       return { error: error.message };
     }
@@ -67,43 +57,38 @@ export const auth = {
   // Obtener usuario actual
   getCurrentUser: async () => {
     try {
-      const sessionData = localStorage.getItem('restaurant_session');
-      if (!sessionData) return null;
+      const { data: { session } } = await supabase.auth.getSession();
 
-      const session = JSON.parse(sessionData);
-      
-      // Verificar si la sesión ha expirado
-      if (new Date() > new Date(session.expires_at)) {
-        localStorage.removeItem('restaurant_session');
-        return null;
-      }
-
-      return session.user;
+      return session?.user ?? null;
     } catch (error) {
       console.error('Error obteniendo usuario:', error);
-      localStorage.removeItem('restaurant_session');
       return null;
     }
+  },
+  // Obtiene el perfil del usuario desde tu tabla "usuarios".
+  getUserProfile: async (user) => {
+    if (!user) return null;
+    const { data, error } = await supabase
+      .from('usuarios')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+    if (error) throw error;
+    return data;
   },
 
   // Obtener sesión actual
   getCurrentSession: async () => {
     try {
-      const sessionData = localStorage.getItem('restaurant_session');
-      if (!sessionData) return null;
-
-      const session = JSON.parse(sessionData);
-      
-      // Verificar si la sesión ha expirado
-      if (new Date() > new Date(session.expires_at)) {
-        localStorage.removeItem('restaurant_session');
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error('Error al obtener la sesión de Supabase:', error);
         return null;
       }
 
       return session;
     } catch (error) {
       console.error('Error obteniendo sesión:', error);
-      localStorage.removeItem('restaurant_session');
       return null;
     }
   },
@@ -112,7 +97,26 @@ export const auth = {
   isAuthenticated: async () => {
     const user = await auth.getCurrentUser();
     return user !== null;
+  },
+
+  getMozoData: async (profile) => {
+    if (!profile || profile.role !== 'mozo' || !profile.mozo_id) return null;
+    
+    try {
+      const { data: mozo, error } = await supabase
+        .from('mozos')
+        .select('id, nombre') // Pedimos solo lo que necesitamos
+        .eq('id', profile.mozo_id)
+        .single();
+      
+      if (error) throw error;
+      return mozo;
+    } catch (error) {
+      console.error('Error obteniendo datos del mozo:', error.message);
+      return null;
+    }
   }
+
 };
 
 // Funciones para determinar el rol del usuario

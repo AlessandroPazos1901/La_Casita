@@ -2,7 +2,7 @@ import React from 'react';
 import { DataCacheProvider } from './contexts/DataCacheContext';
 import { CurrentOrderProvider } from './contexts/CurrentOrderContext';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import useAuth from './hooks/useAuth';
+import { useAuth } from './contexts/AuthContext';
 
 // Componentes de autenticación
 import LoginPage from './components/auth/LoginPage';
@@ -26,7 +26,7 @@ import AtencionClientesSection from './components/admin/sections/AtencionCliente
 import Header from './components/shared/Header';
 import Sidebar from './components/shared/Sidebar';
 import RealtimeNotifier from './components/shared/RealtimeNotifier';
-
+import AppLayout from './components/shared/AppLayout';
 
 // Componente de carga
 const LoadingSpinner = () => (
@@ -44,7 +44,6 @@ function App() {
       userRole,
       mozoData,
       loading,
-      initialized,
       login,
       logout,
       isAuthenticated,
@@ -55,315 +54,67 @@ function App() {
       username,
       mozoName
   } = useAuth();
-
+  console.log('APP: Renderizando. loading:', loading, '| isAuthenticated:', isAuthenticated);
   // Mostrar loading mientras se inicializa la autenticación
-  if (loading || !initialized) {
+  if (loading) {
     return <LoadingSpinner />;
   }
 
-  // Si no está autenticado, mostrar login
-  if (!isAuthenticated()) {
+  // Si el usuario NO está autenticado, renderizamos un router simple SOLO para el login
+  if (!isAuthenticated) {
     return (
       <Router>
         <Routes>
-          <Route path="*" element={<LoginPage onLogin={login} />} />
+          <Route path="/login" element={<LoginPage onLogin={login} />} />
+          {/* Cualquier otra ruta redirige a /login */}
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </Router>
     );
   }
 
-  // Si está autenticado, mostrar la aplicación principal
+  // Si el usuario SÍ está autenticado, renderizamos el router de la aplicación principal
   return (
     <DataCacheProvider>
       <CurrentOrderProvider mozoData={mozoData} userRole={userRole}>
         <Router>
-          <RealtimeNotifier />
-          <div className="min-h-screen bg-gray-100">
-            <Routes>
-              {/* Rutas para mozos */}
-              <Route
-                path="/menu"
-                element={
-                  <ProtectedRoute 
-                    allowedRoles={['mozo', 'admin']}
-                    userRole={userRole}
-                    isAuthenticated={isAuthenticated()}
-                  >
-                    <div className="flex flex-col h-screen bg-gray-100">
-                      <Header 
-                        user={user} 
-                        userRole={userRole} 
-                        mozoName={mozoName}
-                        onLogout={logout}
-                      />
-                      <main className="flex-1 flex flex-col min-h-0">
-                        <MenuPage 
-                          mozoData={mozoData} 
-                          userRole={userRole}
-                        />
-                      </main>
-                    </div>
-                  </ProtectedRoute>
-                }
-              />
+          <Routes>
+            {/* Las rutas autenticadas viven dentro del Layout */}
+            <Route path="/" element={<AppLayout />}>
 
-              <Route
-                path="/historial-pedidos"
-                element={
-                  <ProtectedRoute 
-                    allowedRoles={['mozo', 'admin']}
-                    userRole={userRole}
-                    isAuthenticated={isAuthenticated()}
-                  >
-                    <div className="flex h-screen bg-gray-100">
-                      <div className="flex-1 flex flex-col overflow-hidden">
-                        <Header 
-                          user={user} 
-                          userRole={userRole} 
-                          mozoName={mozoName}
-                          onLogout={logout}
-                        />
-                        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-6">
-                          <OrderHistoryPage 
-                            mozoData={mozoData} 
-                            userRole={userRole}
-                          />
-                        </main>
-                      </div>
-                    </div>
-                  </ProtectedRoute>
-                }
-              />
+              {/* GRUPO 1: Rutas para Mozos (y Admins) */}
+              <Route element={<ProtectedRoute allowedRoles={['mozo', 'admin', 'cajero']} />}>
+                <Route path="menu" element={<MenuPage mozoData={mozoData} userRole={userRole} />} />
+                <Route path="historial-pedidos" element={<OrderHistoryPage mozoData={mozoData} userRole={userRole} />} />
+              </Route>
 
-              {/* Rutas para admin */}
-              <Route
-                path="/dashboard-section"
-                element={
-                  <ProtectedRoute 
-                    allowedRoles={['admin']}
-                    userRole={userRole}
-                    isAuthenticated={isAuthenticated()}
-                  >
-                    <div className="flex h-screen bg-gray-100">
-                      <Sidebar userRole={userRole} />
-                      <div className="flex-1 flex flex-col overflow-hidden">
-                        <Header 
-                          user={user} 
-                          userRole={userRole} 
-                          mozoName={mozoName}
-                          onLogout={logout}
-                        />
-                        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-6">
-                          <DashboardSection />
-                        </main>
-                      </div>
-                    </div>
-                  </ProtectedRoute>
-                }
-              />
+              {/* GRUPO 2: Rutas para Cajeros y Admins) */}
+              <Route element={<ProtectedRoute allowedRoles={['admin', 'cajero']} />}>
+                <Route path="gastos" element={<GastosSection />} />
+                <Route path="reporte-dia" element={<ReporteDiaSection />} />
+                <Route path="productos" element={<ProductosSection />} />
+                <Route path="atencion-clientes" element={<AtencionClientesSection />} />
+              </Route>
 
-              <Route
-                path="/presupuestos"
-                element={
-                  <ProtectedRoute 
-                    allowedRoles={['admin']}
-                    userRole={userRole}
-                    isAuthenticated={isAuthenticated()}
-                  >
-                    <div className="flex h-screen bg-gray-100">
-                      <Sidebar userRole={userRole} />
-                      <div className="flex-1 flex flex-col overflow-hidden">
-                        <Header 
-                          user={user} 
-                          userRole={userRole} 
-                          mozoName={mozoName}
-                          onLogout={logout}
-                        />
-                        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-6">
-                          <PresupuestosSection />
-                        </main>
-                      </div>
-                    </div>
-                  </ProtectedRoute>
-                }
-              />
-
-              <Route
-                path="/gastos"
-                element={
-                  <ProtectedRoute 
-                    allowedRoles={['admin']}
-                    userRole={userRole}
-                    isAuthenticated={isAuthenticated()}
-                  >
-                    <div className="flex h-screen bg-gray-100">
-                      <Sidebar userRole={userRole} />
-                      <div className="flex-1 flex flex-col overflow-hidden">
-                        <Header 
-                          user={user} 
-                          userRole={userRole} 
-                          mozoName={mozoName}
-                          onLogout={logout}
-                        />
-                        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-6">
-                          <GastosSection />
-                        </main>
-                      </div>
-                    </div>
-                  </ProtectedRoute>
-                }
-              />
-
-              <Route
-                path="/reporte-dia"
-                element={
-                  <ProtectedRoute 
-                    allowedRoles={['admin']}
-                    userRole={userRole}
-                    isAuthenticated={isAuthenticated()}
-                  >
-                    <div className="flex h-screen bg-gray-100">
-                      <Sidebar userRole={userRole} />
-                      <div className="flex-1 flex flex-col overflow-hidden">
-                        <Header 
-                          user={user} 
-                          userRole={userRole} 
-                          mozoName={mozoName}
-                          onLogout={logout}
-                        />
-                        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-6">
-                          <ReporteDiaSection />
-                        </main>
-                      </div>
-                    </div>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/productos"
-                element={
-                  <ProtectedRoute 
-                    allowedRoles={['admin']}
-                    userRole={userRole}
-                    isAuthenticated={isAuthenticated()}
-                  >
-                    <div className="flex h-screen bg-gray-100">
-                      <Sidebar userRole={userRole} />
-                      <div className="flex-1 flex flex-col overflow-hidden">
-                        <Header 
-                          user={user} 
-                          userRole={userRole} 
-                          mozoName={mozoName}
-                          onLogout={logout}
-                        />
-                        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-6">
-                          <ProductosSection />
-                        </main>
-                      </div>
-                    </div>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin-historial"
-                element={
-                  <ProtectedRoute 
-                    allowedRoles={['admin']}
-                    userRole={userRole}
-                    isAuthenticated={isAuthenticated()}
-                  >
-                    <div className="flex h-screen bg-gray-100">
-                      <Sidebar userRole={userRole} />
-                      <div className="flex-1 flex flex-col overflow-hidden">
-                        <Header 
-                          user={user} 
-                          userRole={userRole} 
-                          mozoName={mozoName}
-                          onLogout={logout}
-                        />
-                        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-6">
-                          <OrderHistoryPage 
-                            mozoData={mozoData} 
-                            userRole={userRole}
-                          />
-                        </main>
-                      </div>
-                    </div>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin-menu"
-                element={
-                  <ProtectedRoute 
-                    allowedRoles={['admin']}
-                    userRole={userRole}
-                    isAuthenticated={isAuthenticated()}
-                  >
-                    <div className="flex h-screen bg-gray-100">
-                      <Sidebar userRole={userRole} />
-                      <div className="flex-1 flex flex-col overflow-hidden">
-                        <Header 
-                          user={user} 
-                          userRole={userRole} 
-                          mozoName={mozoName}
-                          onLogout={logout}
-                        />
-                        <main className="flex-1 flex flex-col min-h-0">
-                          <MenuPage 
-                            mozoData={mozoData} 
-                            userRole={userRole}
-                          />
-                        </main>
-                      </div>
-                    </div>
-                  </ProtectedRoute>
-                }
-              />
-              {/* Rutas CRM */}
-              <Route
-                path="/atencion-clientes"
-                element={
-                  <ProtectedRoute 
-                    allowedRoles={['admin']}
-                    userRole={userRole}
-                    isAuthenticated={isAuthenticated()}
-                  >
-                    <div className="flex h-screen bg-gray-100">
-                      <Sidebar userRole={userRole} />
-                      <div className="flex-1 flex flex-col overflow-hidden">
-                        <Header 
-                          user={user} 
-                          userRole={userRole} 
-                          mozoName={mozoName}
-                          onLogout={logout}
-                        />
-                        <main className="flex-1 overflow-y-auto p-6">
-                          <AtencionClientesSection />
-                        </main>
-                      </div>
-                    </div>
-                  </ProtectedRoute>
-                }
-              />
-              {/* Ruta por defecto */}
-              <Route
-                path="/"
-                element={
-                  <Navigate 
-                    to={isAdmin ? '/dashboard-section' : '/menu'} 
-                    replace 
-                  />
-                }
-              />
-
-              {/* Ruta 404 */}
+              {/* GRUPO 3: Rutas solo para Admins */}
+              <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+                <Route path="dashboard-section" element={<DashboardSection />} />
+                <Route path="presupuestos" element={<PresupuestosSection />} />
+                
+              </Route>
+              
+              {/* Redirección principal cuando entras a la app */}
               <Route 
-                path="*" 
-                element={<Navigate to="/" replace />} 
+                index 
+                element={<Navigate to={isAdmin ? '/dashboard-section' : '/menu'} replace />} 
               />
-            </Routes>
-          </div>
+            </Route>
+
+            {/* Cualquier otra ruta no encontrada te lleva a la página principal */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+
+          </Routes>
+
         </Router>
       </CurrentOrderProvider>
     </DataCacheProvider>

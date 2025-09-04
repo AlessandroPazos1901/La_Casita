@@ -1,6 +1,10 @@
+// src/components/auth/LoginPage.jsx
+
 import React, { useState } from 'react';
 import MessageDisplay from './MessageDisplay';
-import { auth } from '../../services/supabaseClient';
+// ¡Importante! Asegúrate de que estamos usando nuestro cliente seguro
+import { auth } from '../../services/supabaseClient'; 
+import { useNavigate } from 'react-router-dom';
 
 const LoginPage = ({ onLogin }) => {
   const [username, setUsername] = useState('');
@@ -8,39 +12,24 @@ const LoginPage = ({ onLogin }) => {
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('');
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    
-    if (!username.trim() || !password.trim()) {
-      setMessage('Por favor, ingresa tu usuario y contraseña');
-      setMessageType('error');
-      return;
-    }
-
     setLoading(true);
     setMessage('');
-
-    try {
-      console.log('Username:', username, typeof username);
-      console.log('Password:', password, typeof password);
-      
-      // Llamar directamente al hook login, NO al auth.signIn
-      const result = await onLogin(username, password);
-      
-      if (result && !result.success) {
-        setMessage(result.error);
-        setMessageType('error');
-      } else {
-        setMessage('¡Bienvenido! Iniciando sesión...');
-        setMessageType('success');
-        // No llamar onLogin de nuevo aquí
-      }
-    } catch (error) {
-      setMessage('Error inesperado: ' + error.message);
+    console.log('LOGIN_PAGE: 1. Botón de login presionado. Llamando a onLogin...');
+    // La lógica compleja ya no está aquí.
+    // Simplemente llamamos a la función `login` que viene de las props (onLogin).
+    // Esta función `onLogin` será la función `login` de nuestro `useAuth`.
+    const result = await onLogin(username, password);
+    console.log('LOGIN_PAGE: 2. onLogin ha respondido. Resultado:', result);
+    if (result && result.success) {
+      navigate('/', { replace: true });
+    } else {
+      setMessage(result.error);
       setMessageType('error');
-    } finally {
-      setLoading(false);
+      setLoading(false); 
     }
   };
 
@@ -50,6 +39,7 @@ const LoginPage = ({ onLogin }) => {
     }
   };
 
+  // Tu JSX se mantiene exactamente igual. ¡No necesitas cambiar nada visual!
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#E8D5C8] to-[#CF9D34]">
       <MessageDisplay 
@@ -127,12 +117,6 @@ const LoginPage = ({ onLogin }) => {
             )}
           </button>
         </form>
-
-        <div className="mt-6 text-center">
-          <p className="text-sm text-gray-500">
-            ¿Problemas para acceder? Contacta al administrador
-          </p>
-        </div>
       </div>
     </div>
   );

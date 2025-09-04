@@ -21,6 +21,45 @@ const Sidebar = ({ userRole }) => {
         description: 'Ver pedidos realizados'
       }
     ],
+    cajero: [ 
+      { 
+        path: '/menu',  
+        label: 'Tomar Pedidos', 
+        icon: '🍽️',
+        description: 'Crear nuevos pedidos'
+      },
+      { 
+        path: '/historial-pedidos',  
+        label: 'Historial de Pedidos', 
+        icon: '📋',
+        description: 'Ver todos los pedidos'
+      },
+      { separator: true, category: 'Gestión' },
+      { 
+        path: '/gastos', 
+        label: 'Gastos', 
+        icon: '💸',
+        description: 'Registro de gastos'
+      },
+      { 
+        path: '/reporte-dia', 
+        label: 'Reporte del Día', 
+        icon: '📋',
+        description: 'Reporte diario'
+      },
+      { 
+        path: '/productos', 
+        label: 'Productos',
+        description: 'Gestionar el menú',
+        icon: '📦' 
+      },
+      { 
+        path: '/atencion-clientes', 
+        label: 'Atención Cliente', 
+        description: 'Chats de WhatsApp',
+        icon: '💬' 
+      },
+    ],
     admin: [
       { 
         path: '/dashboard-section',  
@@ -56,13 +95,13 @@ const Sidebar = ({ userRole }) => {
       { separator: true, category: 'Operaciones' },
       // Acceso a funciones de mozo CON SIDEBAR
       { 
-        path: '/admin-menu',  
+        path: '/menu',  
         label: 'Tomar Pedidos', 
         icon: '🍽️',
         description: 'Crear nuevos pedidos'
       },
       { 
-        path: '/admin-historial',  
+        path: '/historial-pedidos',  
         label: 'Historial de Pedidos', 
         icon: '📋',
         description: 'Ver pedidos realizados'

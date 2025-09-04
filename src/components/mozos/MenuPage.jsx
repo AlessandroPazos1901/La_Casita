@@ -253,7 +253,7 @@ const MenuPage = ({ mozoData, userRole }) => {
               </div>
               
               <div className="flex items-center space-x-4">
-                {userRole !== 'admin' && (
+                {userRole !== 'admin' || userRole !== 'cajero' && (
                   <button
                     onClick={() => navigate('/historial-pedidos')}
                     className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-5 rounded-full shadow-md transform transition-all duration-300 hover:scale-105"
@@ -267,6 +267,14 @@ const MenuPage = ({ mozoData, userRole }) => {
                     className="bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-5 rounded-full shadow-md transform transition-all duration-300 hover:scale-105"
                   >
                     📊 Dashboard
+                  </button>
+                )}
+                {userRole === 'cajero' && (
+                  <button
+                    onClick={() => navigate('/productos')}
+                    className="bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-5 rounded-full shadow-md transform transition-all duration-300 hover:scale-105"
+                  >
+                    📊 Productos
                   </button>
                 )}
               </div>
@@ -284,7 +292,7 @@ const MenuPage = ({ mozoData, userRole }) => {
                 </p>
               </div>
               <div className="flex items-center space-x-2">
-                {userRole !== 'admin' && (
+                {userRole !== 'admin' || userRole !== 'cajero' && (
                   <button
                     onClick={() => navigate('/historial-pedidos')}
                     className="bg-purple-600 hover:bg-purple-700 text-white text-sm px-3 py-2 rounded-full"
@@ -292,9 +300,17 @@ const MenuPage = ({ mozoData, userRole }) => {
                     Historial
                   </button>
                 )}
-                {userRole === 'admin' && (
+                {userRole === 'admin'  && (
                   <button
                     onClick={() => navigate('/dashboard-section')}
+                    className="bg-gray-700 hover:bg-gray-800 text-white text-sm px-3 py-2 rounded-full"
+                  >
+                    📊
+                  </button>
+                )}
+                {userRole === 'cajero'  && (
+                  <button
+                    onClick={() => navigate('/productos')}
                     className="bg-gray-700 hover:bg-gray-800 text-white text-sm px-3 py-2 rounded-full"
                   >
                     📊

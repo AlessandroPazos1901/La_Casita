@@ -51,31 +51,35 @@ const useOrderHistory = (mozoId, userRole) => {
     try {
       setLoading(true);
       setError(null);
+      
+      const today = new Date();
+      // 2. La ajustamos para que represente el inicio del día (medianoche).
+      today.setHours(0, 0, 0, 0);
+      // 3. La convertimos a un formato estándar que la base de datos entiende.
+      const startOfDay = today.toISOString();
 
-      // 1. Creamos una consulta base que SIEMPRE pide los datos del mozo
+      // 2. Creamos la consulta base con la optimización de fecha
       let query = supabase
         .from('pedidos')
         .select(`
           *,
-          pedido_items!left (
-            *,
-            producto:productos!left (*)
-          ),
-          mozo:mozos!left (nombre)
+          pedido_items!left(*, producto:productos!left(*)),
+          mozo:mozos!left(nombre)
         `)
-        .order('created_at', { ascending: false });
+        .gte('created_at', startOfDay) 
+        .order('created_at', { ascending: true }); // Ascendente es más natural para un historial del día
 
-      // 2. Si el rol NO es admin, añadimos un filtro para ver solo sus pedidos
-      if (userRole !== 'admin' && mozoId) {
+
+      // 3. AJUSTE DE ROL: Ahora un 'mozo' es el único caso especial.
+      //    Admins y Cajeros verán todos los pedidos del día.
+      if (userRole === 'mozo' && mozoId) {
         query = query.eq('mozo_id', mozoId);
       }
 
-      // 3. Ejecutamos la consulta ya sea con o sin el filtro
       const { data, error } = await query;
-
       if (error) throw error;
-
       setOrdersHistory(data || []);
+
     } catch (err) {
       setError(err.message);
       console.error('Error al cargar historial de pedidos:', err);
@@ -242,10 +246,6 @@ const useOrderHistory = (mozoId, userRole) => {
     );
   };
 
-  const getTodayOrders = () => {
-    return getOrdersByDate(new Date());
-  };
-
   const getOrderById = (orderId) => {
     return ordersHistory.find(order => order.id === orderId);
   };
@@ -263,25 +263,18 @@ const useOrderHistory = (mozoId, userRole) => {
     }, 0);
   };
 
-  const getTodaySales = () => {
-    return getTotalSalesByDate(new Date());
-  };
 
   const getOrdersStats = () => {
     const totalOrders = ordersHistory.length;
     const pendingOrders = getPendingOrders().length;
     const paidOrders = getPaidOrders().length;
     const totalSales = getTotalSales();
-    const todayOrders = getTodayOrders().length;
-    const todaySales = getTodaySales();
 
     return {
       totalOrders,
       pendingOrders,
       paidOrders,
       totalSales,
-      todayOrders,
-      todaySales,
       averageOrderValue: totalOrders > 0 ? totalSales / totalOrders : 0
     };
   };
@@ -306,11 +299,9 @@ const useOrderHistory = (mozoId, userRole) => {
     getPendingOrders,
     getPaidOrders,
     getOrdersByDate,
-    getTodayOrders,
     getOrderById,
     getTotalSales,
     getTotalSalesByDate,
-    getTodaySales,
     getOrdersStats,
     
     // Estadísticas

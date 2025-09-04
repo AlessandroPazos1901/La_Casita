@@ -6,19 +6,24 @@ const usePrint = () => {
   const [error, setError] = useState(null);
   
   // IP del servidor local 
-  const PRINT_SERVER_URL = 'https://192.168.1.47:3001'; 
+  const PRINT_SERVER_URL = import.meta.env.VITE_PRINT_SERVER_URL;
+  const PRINT_SERVER_SECRET = import.meta.env.VITE_PRINT_SERVER_SECRET; 
   
   const printOrder = useCallback(async (order, changes = null) => {
     setIsLoading(true);
     setError(null);
     
     try {
+      if (!PRINT_SERVER_SECRET) {
+        throw new Error('El secreto del servidor de impresión no está configurado.');
+      }
       console.log('Enviando pedido a imprimir:', { mesa: order.mesa, changes: !!changes });
       
       const response = await fetch(`${PRINT_SERVER_URL}/print`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${PRINT_SERVER_SECRET}`
         },
         body: JSON.stringify({
           order,
