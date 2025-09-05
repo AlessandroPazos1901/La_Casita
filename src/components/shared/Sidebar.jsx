@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
-const Sidebar = ({ userRole }) => {
+const Sidebar = ({  userRole, isSidebarOpen, onClose }) => {
   const location = useLocation();
 
   const isActive = (path) => location.pathname === path;
@@ -127,27 +127,44 @@ const Sidebar = ({ userRole }) => {
     }
   };
 
+  // 2. Clases dinámicas para controlar la visibilidad
+  const sidebarClasses = `
+    bg-gray-800 text-white w-64 min-h-screen flex flex-col
+    fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out
+    lg:relative lg:translate-x-0 lg:z-auto
+    ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+  `;
+
   return (
-    <div className="bg-gray-800 text-white w-64 min-h-screen flex flex-col">
-      {/* Logo y rol */}
-      <div className="p-6 border-b border-gray-700">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-xl">🏠</span>
-          </div>
-          <div>
-            <h1 className="text-xl font-bold">La Casita</h1>
-            <p className="text-gray-400 text-sm">{getRoleDisplayName()}</p>
+    <>
+      {/* 2. Este es el overlay que aparece en móviles cuando el menú está abierto */}
+      {isSidebarOpen && (
+        <div 
+          className="lg:hidden fixed inset-0 bg-black opacity-50 z-40"
+          onClick={onClose}
+        ></div>
+      )}
+
+      {/* 3. Aquí empieza tu código, pero usamos `sidebarClasses` en el div principal */}
+      <div className={sidebarClasses}>
+        {/* Logo y rol (tu código original sin cambios) */}
+        <div className="p-6 border-b border-gray-700">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-xl">🏠</span>
+            </div>
+            <div>
+              <h1 className="text-xl font-bold">La Casita</h1>
+              <p className="text-gray-400 text-sm">{getRoleDisplayName()}</p>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 mt-6">
-        <ul className="space-y-1">
-          {currentMenu.map((item, index) => {
-            // Renderizar separador
-            if (item.separator) {
+        {/* Navigation (tu código original sin cambios) */}
+        <nav className="flex-1 mt-6">
+          <ul className="space-y-1">
+            {currentMenu.map((item, index) => {
+              if (item.separator) {
               return (
                 <li key={`separator-${index}`} className="px-6 py-3">
                   <hr className="border-gray-600" />
@@ -195,6 +212,7 @@ const Sidebar = ({ userRole }) => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 
