@@ -212,7 +212,7 @@ export const DataCacheProvider = ({ children }) => {
         .from('pedidos')
         .select(`
           *,
-          mozo:mozos!left (nombre),
+          usuario:usuarios(nombre),
           pedido_items!left (
             *,
             producto:productos!left (*)

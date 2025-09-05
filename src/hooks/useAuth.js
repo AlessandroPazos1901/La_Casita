@@ -4,7 +4,6 @@ import { auth } from '../services/supabaseClient';
 const useAuth = () => {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
-  const [mozoData, setMozoData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const checkAuthState = useCallback(async () => {
@@ -19,18 +18,11 @@ const useAuth = () => {
         const userProfile = await auth.getUserProfile(currentUser);
         console.log('AUTH: userProfile:', userProfile);
         setProfile(userProfile);
-        
-        if (userProfile?.role === 'mozo') {
-          const mozoInfo = await auth.getMozoData(userProfile);
-          console.log('AUTH: mozoInfo:', mozoInfo);
-          setMozoData(mozoInfo);
-        }
       }
     } catch (error) {
       console.error('AUTH: Error en checkAuthState:', error);
       setUser(null);
       setProfile(null);
-      setMozoData(null);
     } finally {
       setLoading(false);
       console.log('AUTH: Verificación de estado finalizada.');
@@ -68,13 +60,6 @@ const useAuth = () => {
       console.log('LOGIN: 3. Perfil obtenido:', userProfile);
       setProfile(userProfile);
 
-      // 4. Si es mozo, obtenemos sus datos
-      if (userProfile?.role === 'mozo') {
-        const mozoInfo = await auth.getMozoData(userProfile);
-        console.log('LOGIN: 4. Datos de mozo obtenidos:', mozoInfo);
-        setMozoData(mozoInfo);
-      }
-
       console.log('LOGIN: 5. Login y actualización de estado completados.');
       return { success: true };
 
@@ -90,7 +75,6 @@ const useAuth = () => {
       await auth.signOut();
       setUser(null);
       setProfile(null);
-      setMozoData(null);
       // return { success: true };
       console.log('LOGOUT: 2. Estado local limpiado.');
     } catch (error) {
@@ -105,7 +89,6 @@ const useAuth = () => {
     // Estado
     user,
     profile,
-    mozoData,
     userRole,
     loading,
     
@@ -118,9 +101,8 @@ const useAuth = () => {
     isAdmin: userRole === 'admin',
     isMozo: userRole === 'mozo',
     isCajero: userRole === 'cajero',
+    userName: profile?.nombre || 'Usuario',
     hasManagementAccess: userRole === 'admin' || userRole === 'cajero',
-    mozoId: mozoData?.id || null,
-    mozoName: mozoData?.nombre || null
   };
 };
 

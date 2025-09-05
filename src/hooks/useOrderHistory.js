@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { orders, supabase } from '../services/supabaseClient';
 
-const useOrderHistory = (mozoId, userRole) => {
+const useOrderHistory = (userId, userRole) => {
   const [ordersHistory, setOrdersHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -45,7 +45,7 @@ const useOrderHistory = (mozoId, userRole) => {
       return () => {
         supabase.removeChannel(channel);
       };
-    }, [mozoId, userRole]);
+    }, [userId, userRole]);
 
   const loadOrderHistory = async () => {
     try {
@@ -63,17 +63,17 @@ const useOrderHistory = (mozoId, userRole) => {
         .from('pedidos')
         .select(`
           *,
-          pedido_items!left(*, producto:productos!left(*)),
-          mozo:mozos!left(nombre)
-        `)
-        .gte('created_at', startOfDay) 
-        .order('created_at', { ascending: true }); // Ascendente es más natural para un historial del día
+          pedido_items!left(*, producto:productos!left(*))
+        `) 
+        .gte('created_at', startOfDay)
+        .order('created_at', { ascending: true });
+
 
 
       // 3. AJUSTE DE ROL: Ahora un 'mozo' es el único caso especial.
       //    Admins y Cajeros verán todos los pedidos del día.
-      if (userRole === 'mozo' && mozoId) {
-        query = query.eq('mozo_id', mozoId);
+      if (userRole === 'mozo' && userId) {
+        query = query.eq('usuario_id', userId);
       }
 
       const { data, error } = await query;
@@ -151,7 +151,7 @@ const useOrderHistory = (mozoId, userRole) => {
         .select(`
           *,
           pedido_items!left(*, producto:productos!left(*)),
-          mozo:mozos!left(nombre)
+          usuario:usuarios(nombre)
         `)
         .single();
 

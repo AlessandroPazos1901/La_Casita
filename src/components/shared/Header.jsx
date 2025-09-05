@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-const Header = ({ user, userRole, mozoName, onLogout }) => {
+const Header = ({ user, userRole, mozoName, onLogout, userName }) => {
   const navigate = useNavigate();
 
   const getRoleDisplayName = () => {
@@ -9,7 +9,9 @@ const Header = ({ user, userRole, mozoName, onLogout }) => {
       case 'admin':
         return 'Administrador';
       case 'mozo':
-        return 'Mozo';
+        return 'Mozo(a)';
+      case 'cajero':
+       return 'Cajero(a)';
       default:
         return 'Usuario';
     }
@@ -38,7 +40,7 @@ const Header = ({ user, userRole, mozoName, onLogout }) => {
             {/* Información del usuario */}
             <div>
               <h2 className="text-lg font-semibold text-gray-800">
-                {getGreeting()}, {mozoName || user?.username}
+                {getGreeting()}, {userName}
               </h2>
               <p className="text-sm text-gray-600">
                 {getRoleDisplayName()}
@@ -50,7 +52,7 @@ const Header = ({ user, userRole, mozoName, onLogout }) => {
         {/* Información adicional y acciones */}
         <div className="flex items-center space-x-4">
           {/* Botones móviles para mozos */}
-          {(userRole === 'mozo' || userRole === 'admin') && (
+          {(userRole === 'mozo') && (
             <div className="flex items-center space-x-2 lg:hidden">
               <button
                 onClick={() => navigate('/historial-pedidos')}

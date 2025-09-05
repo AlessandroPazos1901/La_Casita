@@ -1,18 +1,20 @@
 import React, { createContext, useContext, useState } from 'react';
 import useMenuItems from '../hooks/useMenuItems';
 import useOrderHistory from '../hooks/useOrderHistory';
-
+import { useAuth } from './AuthContext';
 // 1. Creamos el contexto
 const CurrentOrderContext = createContext();
 
 // 2. Creamos el Provider, que contendrá toda la lógica
-export const CurrentOrderProvider = ({ children, mozoData, userRole }) => {
+export const CurrentOrderProvider = ({ children }) => {
   const [currentOrder, setCurrentOrder] = useState([]);
   const [tableNumber, setTableNumber] = useState('');
   const [editingOrderId, setEditingOrderId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [originalOrderItems, setOriginalOrderItems] = useState(null);
+  const { profile, userRole } = useAuth();
+
   // Recuperar items originales del localStorage al inicializar
   React.useEffect(() => {
     if (editingOrderId && !originalOrderItems) {
@@ -26,7 +28,7 @@ export const CurrentOrderProvider = ({ children, mozoData, userRole }) => {
       }
     }
   }, [editingOrderId, originalOrderItems]);
-
+  
   const { decrementStock, incrementStock, adjustStock } = useMenuItems();
   const { 
     createOrder, 
@@ -35,7 +37,7 @@ export const CurrentOrderProvider = ({ children, mozoData, userRole }) => {
     getOrderItems, 
     deleteOrderItems,
     refreshOrderHistory 
-  } = useOrderHistory(mozoData?.id, userRole);
+  } = useOrderHistory(profile?.id, userRole);
   const clearOrderError = () => setError(null);
   const addToOrder = async (item) => {
     if (!item || item.stock <= 0) {
@@ -200,7 +202,8 @@ export const CurrentOrderProvider = ({ children, mozoData, userRole }) => {
       // Crear el pedido
       const orderResult = await createOrder({
         mesa: tableNumber,
-        mozo_id: mozoData?.id || null, // Asegurar que sea null si no hay mozo
+        usuario_id: profile?.id || null,
+        atendido_por: profile?.nombre || 'Sistema',
         origen: 'mesa',
         total: total,
         estado: 'pendiente'

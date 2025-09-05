@@ -42,7 +42,6 @@ function App() {
   const {
       user,
       userRole,
-      mozoData,
       loading,
       login,
       logout,
@@ -50,9 +49,7 @@ function App() {
       hasRole,
       hasAnyRole,
       isAdmin,
-      isMozo,
-      username,
-      mozoName
+      isMozo
   } = useAuth();
   console.log('APP: Renderizando. loading:', loading, '| isAuthenticated:', isAuthenticated);
   // Mostrar loading mientras se inicializa la autenticación
@@ -76,7 +73,7 @@ function App() {
   // Si el usuario SÍ está autenticado, renderizamos el router de la aplicación principal
   return (
     <DataCacheProvider>
-      <CurrentOrderProvider mozoData={mozoData} userRole={userRole}>
+      <CurrentOrderProvider >
         <Router>
           <Routes>
             {/* Las rutas autenticadas viven dentro del Layout */}
@@ -84,8 +81,8 @@ function App() {
 
               {/* GRUPO 1: Rutas para Mozos (y Admins) */}
               <Route element={<ProtectedRoute allowedRoles={['mozo', 'admin', 'cajero']} />}>
-                <Route path="menu" element={<MenuPage mozoData={mozoData} userRole={userRole} />} />
-                <Route path="historial-pedidos" element={<OrderHistoryPage mozoData={mozoData} userRole={userRole} />} />
+                <Route path="menu" element={<MenuPage />} />
+                <Route path="historial-pedidos" element={<OrderHistoryPage />} />
               </Route>
 
               {/* GRUPO 2: Rutas para Cajeros y Admins) */}

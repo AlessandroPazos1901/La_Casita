@@ -9,20 +9,23 @@ import MessageDisplay from '../auth/MessageDisplay';
 import { useDataCache } from '../../contexts/DataCacheContext';
 import { useReactToPrint } from 'react-to-print';
 import { BoletaTermica } from '../shared/BoletaTermica';
+import { useAuth } from '../../contexts/AuthContext';
 
-const OrderHistoryPage = ({ mozoData, userRole }) => {
+const OrderHistoryPage = () => {
   const boletaRef = useRef(null);
   const {refreshCache} = useDataCache();
   const navigate = useNavigate();
+  const { userRole, profile, userName } = useAuth();
   const { 
     ordersHistory, 
     loading, 
     error, 
     updateOrder,
     deleteOrder
-  } = useOrderHistory(mozoData?.id, userRole);
-  
-  const { loadOrderForEditing } = useCurrentOrder(mozoData);
+  } = useOrderHistory(profile?.id, userRole);
+
+
+  const { loadOrderForEditing } = useCurrentOrder();
   const { 
     message, 
     messageType, 
@@ -89,13 +92,13 @@ const OrderHistoryPage = ({ mozoData, userRole }) => {
       console.error('No se puede imprimir: ref o orden no disponible');
       showError('Error al preparar la impresión');
     }
-  }, [reactToPrintFn, orderToPrint, showError]);
+  }, [reactToPrintFn, orderToPrint]);
 
   React.useEffect(() => {
     if (error) {
       showError(`Error al cargar el historial: ${error}`);
     }
-  }, [error, showError]);
+  }, [error]);
 
 
   const handleDeleteOrder = async (orderToDelete) => {
@@ -241,10 +244,10 @@ const OrderHistoryPage = ({ mozoData, userRole }) => {
   };
 
   const getOrderCreator = (order) => {
-    if (order.mozo && order.mozo.nombre) {
-      return `${order.mozo.nombre}`;
+    if (order.usuario && order.usuario.nombre) {
+      return order.usuario.nombre;
     }
-    return 'Admin';
+    return 'Sistema';
   };
 
   const filteredOrders = getFilteredOrders();
@@ -283,14 +286,14 @@ const OrderHistoryPage = ({ mozoData, userRole }) => {
             Historial de Pedidos - Hoy
           </h1>
           <p className="text-gray-600 text-lg mt-2">
-            {userRole === 'admin' 
+            {userRole === 'admin' || userRole === 'cajero'
               ? `Administrador - ${todayStats.totalOrders} pedidos hoy` 
-              : `${mozoData?.nombre || 'Usuario'} - ${todayStats.totalOrders} pedidos hoy`
+              : `${userName || 'Usuario'} - ${todayStats.totalOrders} pedidos hoy`
             }
           </p>
         </div>
         
-        {userRole !== 'admin' && (
+        {userRole !== 'admin' && userRole === 'cajero' &&(
           <div className="flex flex-col sm:flex-row gap-4">
             <button
               onClick={() => navigate('/menu')}
@@ -348,7 +351,7 @@ const OrderHistoryPage = ({ mozoData, userRole }) => {
           </div>
         </div>
         
-        {userRole === 'admin' && (
+        {userRole === 'admin' || userRole === 'cajero' &&(
           <div className="bg-white p-4 rounded-lg shadow-sm border">
             <div className="flex items-center justify-between">
               <div>
@@ -447,7 +450,7 @@ const OrderHistoryPage = ({ mozoData, userRole }) => {
                     <span className="font-medium">Fecha:</span> {formatDate(order.created_at)}
                   </p>
                   <p className="text-gray-600 text-sm mb-3">
-                    <span className="font-medium">Atendido por:</span> {getOrderCreator(order)}
+                    <span className="font-medium">Atendido por:</span> {order.atendido_por || 'Sistema'}
                   </p>
                   {order.servicio === 'delivery' || order.servicio === 'recojo' && (
                     <p className="text-gray-600 text-sm mb-3">
@@ -537,7 +540,7 @@ const OrderHistoryPage = ({ mozoData, userRole }) => {
                         Añadir más
                       </button>
                     )}
-                    {order.estado === 'pendiente' && userRole === 'admin' && (
+                    {order.estado === 'pendiente' & userRole === 'admin' || userRole === 'cajero' && (
                       <button
                         onClick={() => handleMarkPaid(order)}
                         className="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-3 rounded-full shadow-md transform transition-all duration-300 hover:scale-105"
@@ -547,7 +550,7 @@ const OrderHistoryPage = ({ mozoData, userRole }) => {
                     )}
                     {/* --- BOTÓN AÑADIDO --- */}
                     {/* Puede estar pendiente o pagado, pero solo para el admin */}
-                    {userRole === 'admin' && (
+                    {userRole === 'admin' || userRole === 'cajero' && (
                       <button
                         onClick={() => handleDeleteOrder(order)}
                         className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-3 rounded-full shadow-md transform transition-all duration-300 hover:scale-105"

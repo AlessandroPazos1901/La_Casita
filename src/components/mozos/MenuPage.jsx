@@ -11,9 +11,11 @@ import MobileCart from './MobileCart';
 import { Comanda } from '../shared/Comanda';
 import { useReactToPrint } from 'react-to-print';
 import usePrint from '../../hooks/usePrint';
+import { useAuth } from '../../contexts/AuthContext'; 
 
-const MenuPage = ({ mozoData, userRole }) => {
+const MenuPage = () => {
   const navigate = useNavigate();
+   const { userRole, profile, userName } = useAuth();
   const { 
     menuItems, 
     loading: menuLoading, 
@@ -38,7 +40,7 @@ const MenuPage = ({ mozoData, userRole }) => {
     totalItems,
     isEmpty,
     isEditing
-  } = useCurrentOrder(mozoData, userRole);
+  } = useCurrentOrder();
   
   const {
     message,
@@ -54,8 +56,7 @@ const MenuPage = ({ mozoData, userRole }) => {
   const [mobileCartOpen, setMobileCartOpen] = useState(false);
 
   const comandaRef = useRef();
-  const [comandaData, setComandaData] = useState(null);
-
+  
   const handlePrint = useReactToPrint({
     contentRef: comandaRef,
   });
@@ -150,7 +151,7 @@ const MenuPage = ({ mozoData, userRole }) => {
       const orderData = {
         mesa: tableNumber,
         created_at: new Date().toISOString(),
-        mozo: mozoData,
+        mozo: userName,
         pedido_items: currentOrder
       };
       
@@ -174,21 +175,6 @@ const MenuPage = ({ mozoData, userRole }) => {
         // Mostrar error pero no bloquear el flujo
         showError(`Pedido enviado correctamente, pero hubo un problema con la impresión: ${printErr.message}`);
       }
-
-      // MANTENER IMPRESIÓN ACTUAL (opcional - puedes comentar/eliminar esta sección)
-      // setComandaData({ order: orderData, changes: changesData });
-
-      // Imprimir después de un pequeño delay para asegurar que el estado se actualice
-      setTimeout(() => {
-        if (comandaRef.current) {
-          handlePrint(); // Tu función de impresión actual
-          // Limpiar datos después de 1 segundo para desmontar el componente
-          setTimeout(() => {
-            setComandaData(null);
-          }, 1000);
-        }
-      }, 100);
-
       setMobileCartOpen(false);
     } else {
       showError(result.error || 'Error al procesar el pedido');
@@ -248,12 +234,12 @@ const MenuPage = ({ mozoData, userRole }) => {
                   Menú del Restaurante
                 </h1>
                 <p className="text-gray-600 text-lg mt-2">
-                  {mozoData?.nombre || ''} {isEditing && '(Editando pedido)'}
+                  {isEditing && '(Editando pedido)'}
                 </p>
               </div>
               
               <div className="flex items-center space-x-4">
-                {userRole !== 'admin' || userRole !== 'cajero' && (
+                {userRole !== 'admin' && userRole !== 'cajero' && (
                   <button
                     onClick={() => navigate('/historial-pedidos')}
                     className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-5 rounded-full shadow-md transform transition-all duration-300 hover:scale-105"
@@ -288,11 +274,11 @@ const MenuPage = ({ mozoData, userRole }) => {
               <div>
                 <h1 className="text-xl font-bold text-gray-900">Menú</h1>
                 <p className="text-sm text-gray-600">
-                  {mozoData?.nombre || ''} {isEditing && '(Editando)'}
+                  {isEditing && '(Editando)'}
                 </p>
               </div>
               <div className="flex items-center space-x-2">
-                {userRole !== 'admin' || userRole !== 'cajero' && (
+                {userRole !== 'admin'  && userRole !== 'cajero' && (
                   <button
                     onClick={() => navigate('/historial-pedidos')}
                     className="bg-purple-600 hover:bg-purple-700 text-white text-sm px-3 py-2 rounded-full"
@@ -568,16 +554,6 @@ const MenuPage = ({ mozoData, userRole }) => {
           </span>
         )}
       </button>
-      {/* Componente oculto para impresión */}
-      {comandaData && (
-        <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
-          <Comanda
-            ref={comandaRef}
-            order={comandaData.order}
-            changes={comandaData.changes}
-          />
-        </div>
-      )}
 
     </div>
   );

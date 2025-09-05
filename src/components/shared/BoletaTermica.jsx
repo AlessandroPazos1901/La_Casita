@@ -26,7 +26,7 @@ export const BoletaTermica = React.forwardRef(({ order }, ref) => {
           <p><strong>Mesa:</strong> {order.mesa}</p>
           <p><strong>Pedido:</strong> {order.numero_pedido}</p>
           <p><strong>Fecha:</strong> {formatDate(order.created_at)}</p>
-          <p><strong>Atendido por:</strong> {order.mozo?.nombre || 'Admin'}</p>
+          <p><strong>Atendido por:</strong> {order.mozo || order.usuario?.nombre || 'Sistema'}</p>
           <p><strong>Cliente:</strong> {order.mesa.split(',').pop() || ''}</p>
           <p><strong>Celular:</strong> {order.celular || ''}</p>
           <p><strong>Direccion:</strong> {order.direccion || ''}</p>
