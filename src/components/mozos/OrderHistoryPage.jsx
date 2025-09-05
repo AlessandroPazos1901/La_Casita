@@ -10,12 +10,14 @@ import { useDataCache } from '../../contexts/DataCacheContext';
 import { useReactToPrint } from 'react-to-print';
 import { BoletaTermica } from '../shared/BoletaTermica';
 import { useAuth } from '../../contexts/AuthContext';
+import usePrint from '../../hooks/usePrint';
 
 const OrderHistoryPage = () => {
   const boletaRef = useRef(null);
   const {refreshCache} = useDataCache();
   const navigate = useNavigate();
   const { userRole, profile, userName } = useAuth();
+  const { printOrder, isLoading: isPrinting } = usePrint();
   const { 
     ordersHistory, 
     loading, 
@@ -23,8 +25,8 @@ const OrderHistoryPage = () => {
     updateOrder,
     deleteOrder
   } = useOrderHistory(profile?.id, userRole);
-
-
+  // Estado para manejar la edición
+  const [isEditing, setIsEditing] = useState(false); 
   const { loadOrderForEditing } = useCurrentOrder();
   const { 
     message, 
@@ -77,6 +79,17 @@ const OrderHistoryPage = () => {
       }
     `
   });
+  
+  const handleReprintComanda = async (order) => {
+    try {
+      // Llamamos a la función de impresión que ya existe.
+      // El segundo argumento 'changes' es null porque es una reimpresión, no una edición.
+      await printOrder(order, null);
+      showSuccess(`Comanda para la mesa ${order.mesa} enviada a la impresora.`);
+    } catch (error) {
+      showError(`Error al imprimir la comanda: ${error.message}`);
+    }
+  };
 
   // Función para manejar el clic en imprimir
   const handlePrintClick = useCallback(() => {
@@ -156,10 +169,18 @@ const OrderHistoryPage = () => {
     const result = loadOrderForEditing(orderToEdit);
     if (result.success) {
       showSuccess(`Pedido de la mesa ${orderToEdit.mesa} cargado. Puedes agregar más items.`);
-      navigate('/menu');
+      setIsEditing(true); // Activar el modo de edición
+      navigate('/menu'); // Navegar al menú
     } else {
       showError(result.error || 'Error al cargar el pedido para edición');
     }
+  };
+
+  const cancelEditing = () => {
+    // Lógica para cancelar la edición
+    setIsEditing(false); // Desactivar el modo de edición
+    showSuccess('Edición cancelada. No se realizaron cambios.');
+    navigate('/order-history'); // Regresar al historial de pedidos
   };
 
   const getFilteredOrders = () => {
@@ -419,7 +440,8 @@ const OrderHistoryPage = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredOrders.map(order => {
+            {filteredOrders.map((order) => {
+              
               const itemsTotal = order.pedido_items?.reduce(
                 (sum, item) => sum + (item.cantidad * item.precio_unitario), 0
               ) || 0;
@@ -433,9 +455,25 @@ const OrderHistoryPage = () => {
               >
                 {/* Header del pedido */}
                 <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-100">
-                  <h3 className="text-2xl font-bold text-gray-800">
-                    Mesa: {order.mesa}
-                  </h3>
+                  {/* Contenedor para el lado izquierdo (botón + título) */}
+                  <div className="flex items-center gap-4">
+                    {/* --- BOTÓN DE REIMPRESIÓN AÑADIDO --- */}
+                    <button
+                      onClick={() => handleReprintComanda(order)}
+                      disabled={isPrinting}
+                      className="p-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full shadow-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Reimprimir Comanda"
+                    >
+                      {/* Ícono de impresora SVG */}
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                      </svg>
+                    </button>
+
+                    <h3 className="text-2xl font-bold text-gray-800">
+                      Mesa: {order.mesa}
+                    </h3>
+                  </div>
                   <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(order.estado)}`}>
                     {getStatusText(order.estado)}
                   </span>
@@ -530,40 +568,40 @@ const OrderHistoryPage = () => {
                       Total: S/. {parseFloat(order.total).toFixed(2)}
                     </span>
                   </div>
-                  
-                  <div className="flex space-x-2">
-                    {order.estado === 'pendiente' && (
-                      <button
-                        onClick={() => handleAddMore(order)}
-                        className="flex-1 bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-3 rounded-full shadow-md transform transition-all duration-300 hover:scale-105"
-                      >
-                        Añadir más
-                      </button>
-                    )}
-                    {(order.estado === 'pendiente' && userRole === 'admin' || userRole === 'cajero') && (
-                      <button
-                        onClick={() => handleMarkPaid(order)}
-                        className="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-3 rounded-full shadow-md transform transition-all duration-300 hover:scale-105"
-                      >
-                        Cobrar
-                      </button>
-                    )}
-                    {/* --- BOTÓN AÑADIDO --- */}
-                    {/* Puede estar pendiente o pagado, pero solo para el admin */}
-                    {(userRole === 'admin' || userRole === 'cajero') && (
-                      <button
-                        onClick={() => handleDeleteOrder(order)}
-                        className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-3 rounded-full shadow-md transform transition-all duration-300 hover:scale-105"
-                      >
-                        Eliminar
-                      </button>
-                    )}
-                    
-                    {order.estado === 'pagado' && (
-                      <div className="flex-1 text-center py-2 text-green-600 font-semibold">
-                        ✅ Pedido completado
-                      </div>
-                    )}
+                  <div className="mt-auto pt-4 border-t border-gray-100">
+                    <div className="flex space-x-2">
+                      {order.estado === 'pendiente' && (
+                        <button
+                          onClick={() => handleAddMore(order)}
+                          className="flex-1 bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-3 rounded-full shadow-md transform transition-all duration-300 hover:scale-105"
+                        >
+                          Añadir más
+                        </button>
+                      )}
+                      {order.estado === 'pendiente' && (userRole === 'admin' || userRole === 'cajero') && (
+                        <button
+                          onClick={() => handleMarkPaid(order)}
+                          className="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-3 rounded-full shadow-md transform transition-all duration-300 hover:scale-105"
+                        >
+                          Cobrar
+                        </button>
+                      )}
+                      {/* --- BOTÓN AÑADIDO --- */}
+                      {/* Puede estar pendiente o pagado, pero solo para el admin */}
+                      {(userRole === 'admin' || userRole === 'cajero') && (
+                        <button
+                          onClick={() => handleDeleteOrder(order)}
+                          className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-3 rounded-full shadow-md transform transition-all duration-300 hover:scale-105"
+                        >
+                          Eliminar
+                        </button>
+                      )}                      
+                      {order.estado === 'pagado' && (
+                        <div className="flex-1 text-center py-2 text-green-600 font-semibold">
+                          ✅ Pedido completado
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

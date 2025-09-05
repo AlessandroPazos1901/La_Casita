@@ -18,7 +18,7 @@ const usePrint = () => {
         throw new Error('El secreto del servidor de impresión no está configurado.');
       }
       console.log('Enviando pedido a imprimir:', { mesa: order.mesa, changes: !!changes });
-      
+      console.log('Orden:', order);
       const response = await fetch(`${PRINT_SERVER_URL}/print`, {
         method: 'POST',
         headers: {

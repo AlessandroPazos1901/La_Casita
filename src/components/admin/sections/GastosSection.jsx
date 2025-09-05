@@ -197,6 +197,13 @@ function GastosSection() {
       }
     }
   };
+  
+  const formatDate = (dateString) => {
+  if (!dateString) return '';
+  const [year, month, day] = dateString.split('-');
+  return `${day}-${month}-${year}`;
+  };
+  
   // FUNCIÓN AUXILIAR PARA CREAR EL ENLACE DE  GOOGLE CALENDAR
   const createGoogleCalendarLink = (cuenta) => {
     const baseURL = "https://calendar.google.com/calendar/render?action=TEMPLATE";
@@ -211,7 +218,8 @@ function GastosSection() {
     const day = String(fecha.getDate()).padStart(2, '0');
     const fechaFormateada = `${year}${month}${day}`;
     const dates = `${fechaFormateada}/${fechaFormateada}`; // Evento de todo el día
-    
+    console.log('Fecha formateada para Google Calendar:', fechaFormateada);
+    console.log('Fecha Sin formatear:', fecha);
     // Descripción del evento
     const details = encodeURIComponent(
       `Monto a pagar: S/. ${cuenta.monto.toFixed(2)}\nCategoría: ${cuenta.categoria}`
@@ -408,7 +416,7 @@ function GastosSection() {
                       <td className="py-3 px-6 text-left whitespace-nowrap">{payment.descripcion}</td>
                       <td className="py-3 px-6 text-left">{payment.categoria}</td>
                       <td className="py-3 px-6 text-left">S/.{parseFloat(payment.monto).toFixed(2)}</td>
-                      <td className="py-3 px-6 text-left">{new Date(payment.fecha_vencimiento).toLocaleDateString('es-ES')}</td>
+                      <td className="py-3 px-6 text-left">{formatDate(payment.fecha_vencimiento)}</td>
                       <td className="py-3 px-6 text-center">
                         <div className="flex justify-center space-x-2">
                           <button
@@ -463,7 +471,7 @@ function GastosSection() {
                   {(gastos || []).map((gasto) => (
                     <tr key={gasto.id} className="border-b border-gray-200 hover:bg-gray-100">
                       <td className="py-3 px-6 text-left whitespace-nowrap">
-                        {new Date(gasto.fecha).toLocaleDateString('es-ES')}
+                        {formatDate(gasto.fecha)}
                       </td>
                       <td className="py-3 px-6 text-left">
                         <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">

@@ -26,24 +26,69 @@ Sistema web para la gestión de pedidos, gastos, presupuestos y atención al cli
 ## Estructura del Proyecto
 
 ```
-.
-├── public/
-├── src/
-│   ├── components/
-│   │   ├── admin/
-│   │   ├── mozos/
-│   │   ├── shared/
-│   ├── contexts/
-│   ├── hooks/
-│   ├── services/
-│   ├── App.jsx
-│   ├── index.css
-│   ├── main.jsx
-├── package.json
-├── tailwind.config.js
-├── postcss.config.js
-├── vite.config.js
-├── README.md
+Directory structure:
+└── alessandropazos1901-la_casita/
+    ├── README.md
+    ├── eslint.config.js
+    ├── index.html
+    ├── package.json
+    ├── postcss.config.js
+    ├── tailwind.config.js
+    ├── vercel.json
+    ├── vite.config.js
+    └── src/
+        ├── App.jsx
+        ├── index.css
+        ├── main.jsx
+        ├── components/
+        │   ├── admin/
+        │   │   ├── Dashboard.jsx
+        │   │   ├── charts/
+        │   │   │   └── PlatosChart.jsx
+        │   │   ├── forms/
+        │   │   │   ├── FormularioGasto.jsx
+        │   │   │   ├── FormularioPresupuesto.jsx
+        │   │   │   └── ProductoFormModal.jsx
+        │   │   └── sections/
+        │   │       ├── AtencionClientesSection.jsx
+        │   │       ├── CategoriaManagement.jsx
+        │   │       ├── DashboardSection.jsx
+        │   │       ├── GastosSection.jsx
+        │   │       ├── PresupuestosSection.jsx
+        │   │       ├── ProductosSection.jsx
+        │   │       └── ReporteDiaSection.jsx
+        │   ├── auth/
+        │   │   ├── LoginPage.jsx
+        │   │   └── MessageDisplay.jsx
+        │   ├── mozos/
+        │   │   ├── CollapsibleCategory.jsx
+        │   │   ├── CustomizeDishModal.jsx
+        │   │   ├── MenuPage.jsx
+        │   │   ├── MobileCart.jsx
+        │   │   └── OrderHistoryPage.jsx
+        │   └── shared/
+        │       ├── AppLayout.jsx
+        │       ├── BoletaTermica.jsx
+        │       ├── Comanda.jsx
+        │       ├── Header.jsx
+        │       ├── ProtectedRoute.jsx
+        │       ├── RealtimeNotifier.jsx
+        │       └── Sidebar.jsx
+        ├── contexts/
+        │   ├── AuthContext.jsx
+        │   ├── CurrentOrderContext.jsx
+        │   └── DataCacheContext.jsx
+        ├── hooks/
+        │   ├── useAuth.js
+        │   ├── useCurrentOrder.js
+        │   ├── useDashboard.js
+        │   ├── useMenuItems.js
+        │   ├── useMessages.js
+        │   ├── useOrderHistory.js
+        │   └── usePrint.js
+        └── services/
+            └── supabaseClient.js
+
 ```
 
 ## Instalación

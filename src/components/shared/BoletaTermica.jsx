@@ -2,6 +2,12 @@ import React from 'react';
 
 export const BoletaTermica = React.forwardRef(({ order }, ref) => {
   // Siempre renderizar el div contenedor, incluso si no hay orden
+  
+  // Función para obtener el nombre del cliente de la mesa
+  const getClientName = () => {
+    const mesaParts = order.mesa?.split(',') || [];
+    return mesaParts.length > 1 ? mesaParts[mesaParts.length - 1] : '';
+  };
 
   return (
     <div 
@@ -20,16 +26,28 @@ export const BoletaTermica = React.forwardRef(({ order }, ref) => {
           <div className="text-center">
             <h1 className="text-lg font-bold">La Casita Restaurant</h1>
             <p>Huanuco, Peru</p>
-            <p>Boleta de Venta Electrónica</p>
+            <p>Ticket de Venta</p>
+            <p>RUC: 20.... </p>
           </div>
           <div className="my-2 border-t border-dashed border-black"></div>
           <p><strong>Mesa:</strong> {order.mesa}</p>
           <p><strong>Pedido:</strong> {order.numero_pedido}</p>
           <p><strong>Fecha:</strong> {formatDate(order.created_at)}</p>
-          <p><strong>Atendido por:</strong> {order.mozo || order.usuario?.nombre || 'Sistema'}</p>
-          <p><strong>Cliente:</strong> {order.mesa.split(',').pop() || ''}</p>
-          <p><strong>Celular:</strong> {order.celular || ''}</p>
-          <p><strong>Direccion:</strong> {order.direccion || ''}</p>
+          <p><strong>Atendido por:</strong> {order.mozo|| 'Admin'}</p>
+          {/* Solo muestra Cliente si hay un nombre */}
+          {getClientName() && (
+            <p><strong>Cliente:</strong> {getClientName()}</p>
+          )}
+          
+          {/* Solo muestra Celular si existe y no está vacío */}
+          {order.celular && order.celular.trim() !== '' && (
+            <p><strong>Celular:</strong> {order.celular}</p>
+          )}
+          
+          {/* Solo muestra Direccion si existe y no está vacía */}
+          {order.direccion && order.direccion.trim() !== '' && (
+            <p><strong>Direccion:</strong> {order.direccion}</p>
+          )}
           <div className="my-2 border-t border-dashed border-black"></div>
           
           <div className="flex justify-between font-bold">
@@ -71,6 +89,9 @@ export const BoletaTermica = React.forwardRef(({ order }, ref) => {
           <p><strong>Pago con:</strong> {paymentMethodText[order.metodo_pago] || 'No especificado'}</p>
           <div className="text-center mt-4">
             <p>¡Gracias por su visita!</p>
+          </div>
+          <div className="text-center mt-3">
+            <p>*** DOCUMENTO NO VÁLIDO COMO COMPROBANTE DE PAGO ***</p>
           </div>
         </>
       )}

@@ -39,7 +39,8 @@ const MenuPage = () => {
     totalPrice,
     totalItems,
     isEmpty,
-    isEditing
+    isEditing,
+    clearCurrentOrder,
   } = useCurrentOrder();
   
   const {
@@ -68,6 +69,11 @@ const MenuPage = () => {
   const categories = useMemo(() => {
     return [...new Set(menuItems.flatMap(cat => cat.items.map(item => item.categoria)))];
   }, [menuItems]);
+  
+  const handleCancelEditing = () => {
+    clearCurrentOrder(); // Limpia el pedido actual
+    navigate('/historial-pedidos'); // Regresa al historial de pedidos
+  };
 
   const filteredItems = useMemo(() => {
     const allItems = menuItems.flatMap(cat => cat.items);
@@ -344,9 +350,18 @@ const MenuPage = () => {
                   Estás editando el pedido de la mesa {tableNumber}
                 </p>
               </div>
+              {/* Botón "Cancelar Edición" */}
+              <div className="mt-4">
+                <button
+                  onClick={handleCancelEditing}
+                  className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-all duration-200"
+                >
+                  Cancelar Edición
+                </button>
+              </div>
             </div>
           )}
-
+          
           {/* Grid de productos - Área con scroll */}
           <div className="flex-1 overflow-y-auto px-4 lg:px-6 py-4 pb-20 lg:pb-4 lg:min-h-0">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
