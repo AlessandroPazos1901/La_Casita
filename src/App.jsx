@@ -38,6 +38,9 @@ const LoadingSpinner = () => (
   </div>
 );
 
+/* This `App` function is the main component of a React application. It handles the routing and
+rendering logic based on the authentication status of the user. Here's a breakdown of what the
+function does: */
 function App() {
   const {
       user,

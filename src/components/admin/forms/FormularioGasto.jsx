@@ -1,4 +1,12 @@
 import React, { useState } from 'react';
+/**
+ * The function `FormularioGasto` is a React component that renders a form for adding expenses with
+ * fields for category, amount, description, and date, along with validation and submission
+ * functionality.
+ * @returns The `FormularioGasto` component is being returned. It is a form component that allows users
+ * to add a new expense by providing details such as category, amount, description, and date. The form
+ * includes input fields for each of these details along with a submit button to add the expense.
+ */
 
 function FormularioGasto({ expenseCategories, onAddExpense,isDisabled }) {
   const [category, setCategory] = useState('');

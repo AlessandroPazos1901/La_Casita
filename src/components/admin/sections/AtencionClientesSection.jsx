@@ -6,6 +6,9 @@ function AtencionClientesSection() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+/* This `useEffect` hook in the `AtencionClientesSection` component is responsible for managing the
+lifecycle of fetching initial requests, subscribing to real-time changes, and cleaning up the
+subscription when the component unmounts. */
   useEffect(() => {
     // 1. Cargar las solicitudes iniciales
     fetchRequests();
@@ -29,6 +32,10 @@ function AtencionClientesSection() {
     };
   }, []);
 
+/**
+ * The function `fetchRequests` asynchronously fetches data from a table named 'atencion_clientes' and
+ * handles loading, error, and setting the retrieved data in a React component.
+ */
   const fetchRequests = async () => {
     try {
       setLoading(true);
