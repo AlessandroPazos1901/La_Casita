@@ -13,7 +13,7 @@ const useMenuItems = () => {
     //const subscription = subscribeToStockChanges();
     // Crea un canal para escuchar cambios en la tabla 'productos'
     const channel = supabase
-      .channel('realtime-productos')
+      .channel('postgresChangesChannel')
       .on(
         'postgres_changes',
         { 
@@ -24,17 +24,30 @@ const useMenuItems = () => {
         (payload) => {
           console.log('Cambio de stock recibido en tiempo real:', payload.new);
           // Llama a la función que ya tienes para actualizar el estado local
-          updateLocalStock(payload.new);
+          if (payload.new && payload.new.activo) {
+            updateLocalStock(payload.new);
+          }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('📡 Estado de suscripción:', status);
+        
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ Suscripción a tiempo real activa');
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('❌ Error en canal de tiempo real');
+          // Intentar reconectar después de un delay
+          setTimeout(() => {
+            console.log('🔄 Intentando reconectar...');
+            loadMenuItems();
+          }, 3000);
+        }
+      });
       
     return () => {
-      // if (subscription) {
-      //   subscription.unsubscribe();
-      // }
+      console.log('🔌 Desconectando suscripción tiempo real');
       supabase.removeChannel(channel);
-    };
+      };
   }, []);
 
   const loadMenuItems = async () => {
@@ -83,14 +96,18 @@ const useMenuItems = () => {
   };
 
   const updateLocalStock = (updatedProduct) => {
+    console.log('🔄 Actualizando stock local:', updatedProduct);
+    
     setMenuItems(prevMenuItems => {
       return prevMenuItems.map(category => ({
         ...category,
-        items: category.items.map(item =>
-          item.id === updatedProduct.id 
-            ? { ...item, stock: updatedProduct.stock } 
-            : item
-        )
+        items: category.items.map(item => {
+          if (item.id === updatedProduct.id) {
+            console.log(`📦 Stock actualizado para ${item.nombre}: ${item.stock} → ${updatedProduct.stock}`);
+            return { ...item, stock: updatedProduct.stock };
+          }
+          return item;
+        })
       }));
     });
   };
