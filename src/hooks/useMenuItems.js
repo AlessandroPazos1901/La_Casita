@@ -13,7 +13,7 @@ const useMenuItems = () => {
     //const subscription = subscribeToStockChanges();
     // Crea un canal para escuchar cambios en la tabla 'productos'
     const channel = supabase
-      .channel('postgresChangesChannel')
+      .channel('table-db-changes')
       .on(
         'postgres_changes',
         { 
