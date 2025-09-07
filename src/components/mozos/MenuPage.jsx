@@ -55,7 +55,7 @@ const MenuPage = () => {
   const [showCustomizeModal, setShowCustomizeModal] = useState(false);
   const [selectedDishToCustomize, setSelectedDishToCustomize] = useState(null);
   const [mobileCartOpen, setMobileCartOpen] = useState(false);
-
+  const [loadingProducts, setLoadingProducts] = useState(new Set())
   const comandaRef = useRef();
   
   const handlePrint = useReactToPrint({
@@ -116,11 +116,11 @@ const MenuPage = () => {
   const handleAddToOrder = async (item) => {
     const result = await addToOrder(item);
     if (result.success) {
-      updateLocalStock({ 
-        id: item.id, 
-        stock: item.stock - 1 
-      });
-      showSuccess(`${item.nombre} agregado al pedido`);
+      // updateLocalStock({ 
+      //   id: item.id, 
+      //   stock: item.stock - 1 
+      // });
+    showSuccess(`${item.nombre} agregado al pedido`);
     } else {
       showError(result.error || 'Error al agregar al pedido');
     }
@@ -129,16 +129,16 @@ const MenuPage = () => {
   const handleRemoveFromOrder = async (orderId) => {
     const result = await removeItemFromOrder(orderId);
     if (result.success) {
-      const removedItem = currentOrder.find(item => item.orderId === orderId);
-      if (removedItem) {
-        const menuItem = menuItems.flatMap(cat => cat.items).find(item => item.id === removedItem.id);
-        if (menuItem) {
-          updateLocalStock({ 
-            id: removedItem.id, 
-            stock: menuItem.stock + removedItem.quantity 
-          });
-        }
-      }
+      // const removedItem = currentOrder.find(item => item.orderId === orderId);
+      // if (removedItem) {
+      //   const menuItem = menuItems.flatMap(cat => cat.items).find(item => item.id === removedItem.id);
+      //   if (menuItem) {
+      //     updateLocalStock({ 
+      //       id: removedItem.id, 
+      //       stock: menuItem.stock + removedItem.quantity 
+      //     });
+      //   }
+      // }
       showSuccess('Producto eliminado del pedido');
     } else {
       showError(result.error || 'Error al eliminar del pedido');
@@ -199,6 +199,28 @@ const MenuPage = () => {
     setShowCustomizeModal(true);
     setMobileCartOpen(false);
   };
+  const handleAddToOrderWithLoading = async (item) => {
+  // Marcar producto como loading
+  setLoadingProducts(prev => new Set(prev).add(item.id));
+  
+  try {
+    const result = await addToOrder(item);
+    if (result.success) {
+      showSuccess(`${item.nombre} agregado al pedido`);
+    } else {
+      showError(result.error || 'Error al agregar al pedido');
+    }
+  } finally {
+    // Remover loading después de un pequeño delay
+    setTimeout(() => {
+      setLoadingProducts(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(item.id);
+        return newSet;
+      });
+    }, 500);
+  }
+};
 
   const saveCustomizedDish = async (updatedDish) => {
     const result = await updateOrderItem(updatedDish);
@@ -395,16 +417,16 @@ const MenuPage = () => {
                       </span>
                       
                       <button
-                        onClick={() => handleAddToOrder(item)}
-                        disabled={item.stock <= 0 || orderLoading}
+                        onClick={() => handleAddToOrderWithLoading(item)}
+                        disabled={item.stock <= 0 || loadingProducts.has(item.id)}
                         className={`font-bold py-2 px-4 rounded-full text-sm lg:text-base shadow-md transform transition-all duration-300 hover:scale-105 ml-2 ${
-                          item.stock > 0 && !orderLoading 
+                          item.stock > 0 && !loadingProducts.has(item.id)
                             ? 'bg-blue-600 hover:bg-blue-700 text-white active:scale-95' 
                             : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                         }`}
                       >
-                        {orderLoading ? 'Agregando...' : (item.stock > 0 ? 'Agregar' : 'No disponible')}
-                      </button>
+                        {loadingProducts.has(item.id) ? 'Agregando...' : (item.stock > 0 ? 'Agregar' : 'No disponible')}
+                    </button>
                     </div>
                   </div>
                 ))
@@ -534,7 +556,7 @@ const MenuPage = () => {
       <MobileCart
         isOpen={mobileCartOpen}
         onClose={() => setMobileCartOpen(false)}
-        currentOrder={currentOrder}
+        currentOrder={currentOrder}          
         totalPrice={totalPrice}
         tableNumber={tableNumber}
         setTableNumber={setTableNumber}
