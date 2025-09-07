@@ -1,8 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Configuración de Supabase
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_KEY;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_KEY || process.env.VITE_SUPABASE_KEY;
+
 
 // Crear cliente de Supabase
 export const supabase = createClient(supabaseUrl, supabaseKey);
@@ -224,7 +225,7 @@ export const products = {
   // Suscribirse a cambios de stock
   subscribeToStockChanges: (callback) => {
     return supabase
-      .channel('stock-changes')
+      .channel('changes')
       .on(
         'postgres_changes',
         {

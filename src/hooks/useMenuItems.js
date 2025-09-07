@@ -1,53 +1,36 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { products, supabase } from '../services/supabaseClient';
 
 const useMenuItems = () => {
   const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Ref para controlar la suscripción actual
+  const channelRef = useRef(null);
+  const isSubscribedRef = useRef(false);
 
   useEffect(() => {
-    loadMenuItems();
+    let isMounted = true;
     
-    // Suscribirse a cambios de stock
-    //const subscription = subscribeToStockChanges();
-    // Crea un canal para escuchar cambios en la tabla 'productos'
-    const channel = supabase
-      .channel('table-db-changes')
-      .on(
-        'postgres_changes',
-        { 
-          event: 'UPDATE', 
-          schema: 'public', 
-          table: 'productos' 
-        },
-        (payload) => {
-          console.log('Cambio de stock recibido en tiempo real:', payload.new);
-          // Llama a la función que ya tienes para actualizar el estado local
-          if (payload.new && payload.new.activo) {
-            updateLocalStock(payload.new);
-          }
-        }
-      )
-      .subscribe((status) => {
-        console.log('📡 Estado de suscripción:', status);
-        
-        if (status === 'SUBSCRIBED') {
-          console.log('✅ Suscripción a tiempo real activa');
-        } else if (status === 'CHANNEL_ERROR') {
-          console.error('❌ Error en canal de tiempo real');
-          // Intentar reconectar después de un delay
-          setTimeout(() => {
-            console.log('🔄 Intentando reconectar...');
-            loadMenuItems();
-          }, 3000);
-        }
-      });
+    const initializeMenu = async () => {
+      if (!isMounted) return;
+      
+      // Cargar elementos del menú
+      await loadMenuItems();
+      
+      // Configurar suscripción solo si el componente sigue montado
+      if (isMounted && !isSubscribedRef.current) {
+        setupRealtimeSubscription();
+      }
+    };
+
+    initializeMenu();
       
     return () => {
-      console.log('🔌 Desconectando suscripción tiempo real');
-      supabase.removeChannel(channel);
-      };
+      isMounted = false;
+      cleanupSubscription();
+    };
   }, []);
 
   const loadMenuItems = async () => {
@@ -72,6 +55,65 @@ const useMenuItems = () => {
     }
   };
 
+  const setupRealtimeSubscription = () => {
+    // Limpiar suscripción existente antes de crear una nueva
+    cleanupSubscription();
+    
+    console.log('🔄 Configurando nueva suscripción de tiempo real...');
+    
+    // Crear nueva suscripción
+    const channel = supabase
+      .channel(`productos_changes_${Date.now()}`) // Nombre único para evitar conflictos
+      .on(
+        'postgres_changes',
+        { 
+          event: 'UPDATE', 
+          schema: 'public', 
+          table: 'productos' 
+        },
+        (payload) => {
+          console.log('Cambio de stock recibido en tiempo real:', payload.new);
+          if (payload.new && payload.new.activo) {
+            updateLocalStock(payload.new);
+          }
+        }
+      )
+      .subscribe((status, err) => {
+        console.log('📡 Estado de suscripción:', status);
+        
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ Suscripción a tiempo real activa');
+          isSubscribedRef.current = true;
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('❌ Error en canal de tiempo real:', err);
+          isSubscribedRef.current = false;
+          
+          // Intentar reconectar después de un delay más largo y con backoff
+          setTimeout(() => {
+            if (channelRef.current) { // Solo reconectar si aún necesitamos la suscripción
+              console.log('🔄 Intentando reconectar suscripción...');
+              setupRealtimeSubscription();
+            }
+          }, 5000);
+        } else if (status === 'CLOSED') {
+          console.log('📡 Canal cerrado');
+          isSubscribedRef.current = false;
+        }
+      });
+      
+    // Guardar referencia del canal
+    channelRef.current = channel;
+  };
+
+  const cleanupSubscription = () => {
+    if (channelRef.current) {
+      console.log('🔌 Desconectando suscripción tiempo real');
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+      isSubscribedRef.current = false;
+    }
+  };
+
   const organizeMenuByCategory = (products) => {
     const categories = {};
     
@@ -86,13 +128,6 @@ const useMenuItems = () => {
     });
 
     return Object.values(categories);
-  };
-
-  const subscribeToStockChanges = () => {
-    return products.subscribeToStockChanges((payload) => {
-      console.log('Stock actualizado:', payload);
-      updateLocalStock(payload.new);
-    });
   };
 
   const updateLocalStock = (updatedProduct) => {
@@ -175,8 +210,14 @@ const useMenuItems = () => {
     })).filter(category => category.items.length > 0);
   };
 
-  const refreshMenu = () => {
-    loadMenuItems();
+  const refreshMenu = async () => {
+    await loadMenuItems();
+    // No necesitas reconfigurar la suscripción aquí, ya está activa
+  };
+
+  // Función para reconectar manualmente si es necesario
+  const reconnectRealtime = () => {
+    setupRealtimeSubscription();
   };
 
   return {
@@ -199,11 +240,15 @@ const useMenuItems = () => {
     // Funciones de utilidad
     refreshMenu,
     updateLocalStock,
+    reconnectRealtime,
     
     // Información útil
     totalProducts: getAllProducts().length,
     availableProducts: getAvailableProducts().reduce((total, cat) => total + cat.items.length, 0),
-    categories: menuItems.map(cat => cat.category)
+    categories: menuItems.map(cat => cat.category),
+    
+    // Estado de conexión
+    isRealtimeConnected: isSubscribedRef.current
   };
 };
 
