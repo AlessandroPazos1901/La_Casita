@@ -9,6 +9,9 @@ const useMenuItems = () => {
   // Ref para controlar la suscripción actual
   const channelRef = useRef(null);
   const isSubscribedRef = useRef(false);
+  const reconnectTimeoutRef = useRef(null);
+  const heartbeatIntervalRef = useRef(null);
+  const lastHeartbeatRef = useRef(Date.now());
 
   useEffect(() => {
     let isMounted = true;
@@ -22,6 +25,8 @@ const useMenuItems = () => {
       // Configurar suscripción solo si el componente sigue montado
       if (isMounted && !isSubscribedRef.current) {
         setupRealtimeSubscription();
+        setupVisibilityHandlers();
+        setupHeartbeat();
       }
     };
 
@@ -29,9 +34,70 @@ const useMenuItems = () => {
       
     return () => {
       isMounted = false;
-      cleanupSubscription();
+      cleanupAll();
     };
   }, []);
+
+  // Manejar cambios de visibilidad de la página
+  const setupVisibilityHandlers = () => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        console.log('👁️ Página visible - verificando conexión...');
+        if (!isSubscribedRef.current) {
+          console.log('🔄 Reconectando suscripción al volver a la página...');
+          setupRealtimeSubscription();
+        }
+        setupHeartbeat();
+      } else {
+        console.log('👁️ Página oculta - pausando heartbeat...');
+        clearHeartbeat();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // Cleanup function will be handled in cleanupAll
+  };
+
+  // Sistema de heartbeat para detectar conexiones perdidas
+  const setupHeartbeat = () => {
+    clearHeartbeat();
+    
+    heartbeatIntervalRef.current = setInterval(() => {
+      if (document.visibilityState === 'visible' && isSubscribedRef.current) {
+        const timeSinceLastHeartbeat = Date.now() - lastHeartbeatRef.current;
+        
+        // Si ha pasado más de 2 minutos sin heartbeat, reconectar
+        if (timeSinceLastHeartbeat > 120000) {
+          console.log('💓 Heartbeat perdido - reconectando...');
+          setupRealtimeSubscription();
+        }
+        
+        lastHeartbeatRef.current = Date.now();
+      }
+    }, 30000); // Verificar cada 30 segundos
+  };
+
+  const clearHeartbeat = () => {
+    if (heartbeatIntervalRef.current) {
+      clearInterval(heartbeatIntervalRef.current);
+      heartbeatIntervalRef.current = null;
+    }
+  };
+
+  const cleanupAll = () => {
+    cleanupSubscription();
+    clearHeartbeat();
+    
+    // Limpiar timeout de reconexión
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = null;
+    }
+    
+    // Limpiar event listeners
+    document.removeEventListener('visibilitychange', setupVisibilityHandlers);
+  };
 
   const loadMenuItems = async () => {
     try {
@@ -61,9 +127,10 @@ const useMenuItems = () => {
     
     console.log('🔄 Configurando nueva suscripción de tiempo real...');
     
-    // Crear nueva suscripción
+    // Crear nueva suscripción con nombre único por sesión
+    const sessionId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const channel = supabase
-      .channel(`productos_changes_${Date.now()}`) // Nombre único para evitar conflictos
+      .channel(`productos_changes_${sessionId}`)
       .on(
         'postgres_changes',
         { 
@@ -72,14 +139,15 @@ const useMenuItems = () => {
           table: 'productos' 
         },
         (payload) => {
-          console.log('Cambio de stock recibido en tiempo real:', payload.new);
+          console.log('🔄 Cambio de stock recibido en tiempo real:', payload.new);
+          lastHeartbeatRef.current = Date.now(); // Actualizar heartbeat
           if (payload.new && payload.new.activo) {
             updateLocalStock(payload.new);
           }
         }
       )
       .subscribe((status, err) => {
-        console.log('📡 Estado de suscripción:', status);
+        console.log(`📡 Estado de suscripción [${sessionId}]:`, status);
         
         if (status === 'SUBSCRIBED') {
           console.log('✅ Suscripción a tiempo real activa');
@@ -88,13 +156,22 @@ const useMenuItems = () => {
           console.error('❌ Error en canal de tiempo real:', err);
           isSubscribedRef.current = false;
           
-          // Intentar reconectar después de un delay más largo y con backoff
-          setTimeout(() => {
-            if (channelRef.current) { // Solo reconectar si aún necesitamos la suscripción
+          // Intentar reconectar después de un delay progresivo
+          const retryDelay = Math.min(5000 + Math.random() * 2000, 30000); // 5-7 segundos, máximo 30
+          console.log(`🔄 Reintentando reconexión en ${retryDelay}ms...`);
+          
+          // Limpiar timeout anterior si existe
+          if (reconnectTimeoutRef.current) {
+            clearTimeout(reconnectTimeoutRef.current);
+          }
+          
+          reconnectTimeoutRef.current = setTimeout(() => {
+            if (document.visibilityState === 'visible') {
               console.log('🔄 Intentando reconectar suscripción...');
               setupRealtimeSubscription();
             }
-          }, 5000);
+            reconnectTimeoutRef.current = null;
+          }, retryDelay);
         } else if (status === 'CLOSED') {
           console.log('📡 Canal cerrado');
           isSubscribedRef.current = false;
@@ -247,8 +324,16 @@ const useMenuItems = () => {
     availableProducts: getAvailableProducts().reduce((total, cat) => total + cat.items.length, 0),
     categories: menuItems.map(cat => cat.category),
     
-    // Estado de conexión
-    isRealtimeConnected: isSubscribedRef.current
+    // Estado de conexión mejorado
+    isRealtimeConnected: isSubscribedRef.current,
+    lastHeartbeat: lastHeartbeatRef.current,
+    connectionHealth: () => {
+      if (!isSubscribedRef.current) return 'disconnected';
+      const timeSinceHeartbeat = Date.now() - lastHeartbeatRef.current;
+      if (timeSinceHeartbeat > 120000) return 'stale';
+      if (timeSinceHeartbeat > 60000) return 'warning';
+      return 'healthy';
+    }
   };
 };
 

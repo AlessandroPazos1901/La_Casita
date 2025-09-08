@@ -11,7 +11,8 @@ import MobileCart from './MobileCart';
 import { Comanda } from '../shared/Comanda';
 import { useReactToPrint } from 'react-to-print';
 import usePrint from '../../hooks/usePrint';
-import { useAuth } from '../../contexts/AuthContext'; 
+import { useAuth } from '../../contexts/AuthContext';
+ 
 
 const MenuPage = () => {
   const navigate = useNavigate();

@@ -13,7 +13,68 @@ export const CurrentOrderProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [originalOrderItems, setOriginalOrderItems] = useState(null);
+  const [isInitialized, setIsInitialized] = useState(false);
   const { profile, userRole } = useAuth();
+
+  // Función para cargar el carrito desde localStorage
+  const loadCartFromStorage = () => {
+    try {
+      const savedCart = localStorage.getItem('currentOrder');
+      const savedTableNumber = localStorage.getItem('tableNumber');
+      const savedEditingOrderId = localStorage.getItem('editingOrderId');
+      
+      console.log('Loading from localStorage:', { savedCart, savedTableNumber, savedEditingOrderId });
+      
+      if (savedCart && savedCart !== '[]') {
+        const parsedCart = JSON.parse(savedCart);
+        console.log('Parsed cart:', parsedCart);
+        setCurrentOrder(parsedCart);
+      }
+      
+      if (savedTableNumber && savedTableNumber !== '') {
+        setTableNumber(savedTableNumber);
+      }
+      
+      if (savedEditingOrderId && savedEditingOrderId !== 'null') {
+        setEditingOrderId(parseInt(savedEditingOrderId));
+      }
+      
+      setIsInitialized(true);
+    } catch (error) {
+      console.error('Error loading cart from localStorage:', error);
+      // Si hay error, limpiar localStorage
+      localStorage.removeItem('currentOrder');
+      localStorage.removeItem('tableNumber');
+      localStorage.removeItem('editingOrderId');
+      setIsInitialized(true);
+    }
+  };
+
+  // Función para guardar el carrito en localStorage
+  const saveCartToStorage = (order, table, editingId) => {
+    if (!isInitialized) return; // No guardar hasta que se haya inicializado
+    
+    try {
+      console.log('Saving to localStorage:', { order, table, editingId });
+      localStorage.setItem('currentOrder', JSON.stringify(order));
+      localStorage.setItem('tableNumber', table);
+      localStorage.setItem('editingOrderId', editingId ? editingId.toString() : 'null');
+    } catch (error) {
+      console.error('Error saving cart to localStorage:', error);
+    }
+  };
+
+  // Cargar el carrito al inicializar el contexto
+  React.useEffect(() => {
+    loadCartFromStorage();
+  }, []);
+
+  // Guardar el carrito cada vez que cambie (solo después de inicializar)
+  React.useEffect(() => {
+    if (isInitialized) {
+      saveCartToStorage(currentOrder, tableNumber, editingOrderId);
+    }
+  }, [currentOrder, tableNumber, editingOrderId, isInitialized]);
 
   // Recuperar items originales del localStorage al inicializar
   React.useEffect(() => {
@@ -432,33 +493,11 @@ export const CurrentOrderProvider = ({ children }) => {
 
   const updateExistingOrder = async (orderId, total) => {
     console.log("Datos en currentOrder ANTES de actualizar:", JSON.stringify(currentOrder, null, 2));
+    console.log("Items originales guardados:", JSON.stringify(originalOrderItems, null, 2));
+    
     try {
-      // Obtener items actuales del pedido
-      const currentItemsResult = await getOrderItems(orderId);
-      if (!currentItemsResult.success) {
-        throw new Error(currentItemsResult.error);
-      }
-
-      const currentItems = currentItemsResult.data;
-
-      // Calcular ajustes de stock
-      const stockAdjustments = {};
-      
-      // Restaurar stock de items originales
-      currentItems.forEach(item => {
-        if (!stockAdjustments[item.producto_id]) {
-          stockAdjustments[item.producto_id] = 0;
-        }
-        stockAdjustments[item.producto_id] += item.cantidad;
-      });
-
-      // Descontar stock de items nuevos
-      currentOrder.forEach(item => {
-        if (!stockAdjustments[item.id]) {
-          stockAdjustments[item.id] = 0;
-        }
-        stockAdjustments[item.id] -= item.quantity;
-      });
+      // NO hacer ajustes de stock aquí - ya se ajustaron cuando se agregaron/eliminaron productos
+      console.log("⚠️ IMPORTANTE: No se ajustará stock - ya fue ajustado al agregar/eliminar productos");
 
       // Eliminar items anteriores
       const deleteResult = await deleteOrderItems(orderId);
@@ -498,15 +537,7 @@ export const CurrentOrderProvider = ({ children }) => {
         throw new Error(updateResult.error);
       }
 
-      // Aplicar ajustes de stock
-      for (const [productId, adjustment] of Object.entries(stockAdjustments)) {
-        if (adjustment !== 0) {
-          const stockResult = await adjustStock(parseInt(productId), -adjustment);
-          if (!stockResult.success) {
-            console.error('Error ajustando stock:', stockResult.error);
-          }
-        }
-      }
+      console.log("✅ Pedido actualizado sin ajustar stock (ya fue ajustado previamente)");
 
       return { success: true };
     } catch (err) {
@@ -572,6 +603,9 @@ export const CurrentOrderProvider = ({ children }) => {
     setEditingOrderId(null);
     setOriginalOrderItems(null);
     localStorage.removeItem('editing_original_items');
+    localStorage.removeItem('currentOrder');
+    localStorage.removeItem('tableNumber');
+    localStorage.removeItem('editingOrderId');
     setError(null);
   };
 
