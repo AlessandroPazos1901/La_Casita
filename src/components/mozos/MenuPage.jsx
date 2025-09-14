@@ -84,12 +84,20 @@ const MenuPage = () => {
     const allItems = menuItems.flatMap(cat => cat.items);
 
     if (searchTerm.trim()) {
-      return allItems.filter(item => 
+      return allItems.filter(item =>
         item.nombre.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-    
-    return allItems.filter(item => item.categoria === selectedCategory);
+
+    return allItems.filter(item => {
+      // Para carta de noche, usar categoria_noche si existe, sino categoria
+      // Para carta del día, usar categoria
+      const itemCategory = menuType === 'noche'
+        ? (item.categoria_noche || item.categoria)
+        : item.categoria;
+
+      return itemCategory === selectedCategory;
+    });
   }, [menuItems, selectedCategory, searchTerm, menuType]);
 
   // Mostrar errores de los hooks
@@ -353,7 +361,7 @@ const MenuPage = () => {
 
 
             {/* Botones de categoría - Scroll horizontal en móvil */}
-            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+            <div className="flex gap-2 overflow-x-auto pb-2">
               {categories.map(category => (
                 <button
                   key={category}
