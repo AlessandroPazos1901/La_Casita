@@ -82,6 +82,28 @@ const OrderHistoryPage = () => {
   
   const handleReprintComanda = async (order) => {
     try {
+      console.log('Iniciando reimpresión de comanda para orden:', order);
+      console.log('Iniciando:', order.pedido_items);
+      
+      const notes = [];
+      if (order?.individuals && Array.isArray(order?.individuals)) {
+        console.log("1. item.individuals:", order?.individuals);
+        item.individuals.forEach(individual => {
+          if (individual.notes) notes.push(individual.notes);
+          if (individual.notas) notes.push(individual.notas);
+        });
+      }
+      else if (order?.notas && Array.isArray(order?.notas)) {
+        console.log("2. item.notas:", order?.notas);
+        notes.push(...order.notas);
+      }
+      else if (order.pedido_items && Array.isArray(order?.pedido_items)) {
+        order.pedido_items.forEach(individual => {
+          console.log("3. individual.notas:", individual);
+          if (individual.notas) notes.push(individual.notas);
+        });
+      }
+      console.log("notas : ",notes.filter(Boolean));
       // Llamamos a la función de impresión que ya existe.
       // El segundo argumento 'changes' es null porque es una reimpresión, no una edición.
       await printOrder(order, null);

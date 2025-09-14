@@ -26,6 +26,7 @@ const useDashboard = () => {
 
   const addProduct = async (productData) => {
     try {
+      // Usar siempre la tabla productos unificada
       const { data, error } = await supabase
         .from('productos')
         .insert([productData])
@@ -44,6 +45,7 @@ const useDashboard = () => {
 
   const updateProduct = async (productId, productData) => {
     try {
+      // Usar siempre la tabla productos unificada
       const { data, error } = await supabase
         .from('productos')
         .update(productData)
@@ -85,10 +87,9 @@ const useDashboard = () => {
         if (error) throw error;
         removeFromCache('productos', productId);
       }
-      
+
       return { success: true };
-    } catch (err)
-      {
+    } catch (err) {
       console.error('Error eliminando producto:', err);
       return { success: false, error: err.message };
     }

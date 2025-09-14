@@ -1,8 +1,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useMenuType } from '../../contexts/MenuTypeContext';
 const Header = ({ user, userRole, mozoName, onLogout, userName, onToggleSidebar }) => {
   const navigate = useNavigate();
+  const { menuType } = useMenuType();
 
   const getRoleDisplayName = () => {
     switch (userRole) {
@@ -74,6 +76,16 @@ const Header = ({ user, userRole, mozoName, onLogout, userName, onToggleSidebar 
               </button>
             </div>
           )}
+
+          {/* Indicador de tipo de menú */}
+          <div className="flex items-center space-x-2 bg-gray-50 border border-gray-200 rounded-full px-3 py-2">
+            <span className="text-xl" title={menuType === 'day' ? 'Carta del Día' : 'Carta de la Noche'}>
+              {menuType === 'day' ? '☀️' : '🌙'}
+            </span>
+            <span className="hidden sm:block text-sm font-medium text-gray-700">
+              {menuType === 'day' ? 'Día' : 'Noche'}
+            </span>
+          </div>
 
           {/* Fecha y hora actual */}
           <div className="hidden md:block text-right">

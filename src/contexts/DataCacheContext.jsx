@@ -119,6 +119,7 @@ export const DataCacheProvider = ({ children }) => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+
       return data || [];
     } catch (err) {
       console.error('Error loading ventas:', err);

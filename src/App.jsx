@@ -1,6 +1,7 @@
 import React from 'react';
 import { DataCacheProvider } from './contexts/DataCacheContext';
 import { CurrentOrderProvider } from './contexts/CurrentOrderContext';
+import { MenuTypeProvider } from './contexts/MenuTypeContext';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 
@@ -75,9 +76,10 @@ function App() {
 
   // Si el usuario SÍ está autenticado, renderizamos el router de la aplicación principal
   return (
-    <DataCacheProvider>
-      <CurrentOrderProvider >
-        <Router>
+    <MenuTypeProvider>
+      <DataCacheProvider>
+        <CurrentOrderProvider >
+          <Router>
           <Routes>
             {/* Las rutas autenticadas viven dentro del Layout */}
             <Route path="/" element={<AppLayout />}>
@@ -115,9 +117,10 @@ function App() {
 
           </Routes>
 
-        </Router>
-      </CurrentOrderProvider>
-    </DataCacheProvider>
+          </Router>
+        </CurrentOrderProvider>
+      </DataCacheProvider>
+    </MenuTypeProvider>
   );
 }
 

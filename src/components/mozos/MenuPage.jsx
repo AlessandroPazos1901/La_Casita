@@ -12,11 +12,13 @@ import { Comanda } from '../shared/Comanda';
 import { useReactToPrint } from 'react-to-print';
 import usePrint from '../../hooks/usePrint';
 import { useAuth } from '../../contexts/AuthContext';
+import { useMenuType } from '../../contexts/MenuTypeContext';
  
 
 const MenuPage = () => {
   const navigate = useNavigate();
    const { userRole, profile, userName } = useAuth();
+   const { menuType } = useMenuType();
   const { 
     menuItems, 
     loading: menuLoading, 
@@ -76,6 +78,7 @@ const MenuPage = () => {
     navigate('/historial-pedidos'); // Regresa al historial de pedidos
   };
 
+
   const filteredItems = useMemo(() => {
     const allItems = menuItems.flatMap(cat => cat.items);
 
@@ -86,7 +89,7 @@ const MenuPage = () => {
     }
     
     return allItems.filter(item => item.categoria === selectedCategory);
-  }, [menuItems, selectedCategory, searchTerm]);
+  }, [menuItems, selectedCategory, searchTerm, menuType]);
 
   // Mostrar errores de los hooks
   React.useEffect(() => {
@@ -347,22 +350,25 @@ const MenuPage = () => {
               className="w-full p-3 border border-gray-300 rounded-lg text-base mb-4 focus:ring-2 focus:ring-blue-400 focus:border-transparent"
             />
 
+
             {/* Botones de categoría - Scroll horizontal en móvil */}
-            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-              {categories.map(category => (
-                <button
-                  key={category}
-                  onClick={() => setSelectedCategory(category)}
-                  className={`px-4 py-2 font-semibold rounded-full text-sm whitespace-nowrap flex-shrink-0 transition-all duration-200 ${
-                    selectedCategory === category && !searchTerm.trim()
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {category}
-                </button>
-              ))}
-            </div>
+            {menuType === 'day' && (
+              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                {categories.map(category => (
+                  <button
+                    key={category}
+                    onClick={() => setSelectedCategory(category)}
+                    className={`px-4 py-2 font-semibold rounded-full text-sm whitespace-nowrap flex-shrink-0 transition-all duration-200 ${
+                      selectedCategory === category && !searchTerm.trim()
+                        ? 'bg-blue-600 text-white shadow-md'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {category}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Mensaje de edición */}
@@ -433,14 +439,21 @@ const MenuPage = () => {
                 ))
               ) : (
                 <div className="col-span-full text-center py-12">
-                  <div className="text-6xl mb-4">🍽️</div>
+                  <div className="text-6xl mb-4">
+                    {menuType === 'noche' ? '🌙' : '🍽️'}
+                  </div>
                   <p className="text-gray-500 text-lg">
-                    {searchTerm.trim() 
-                      ? 'No se encontraron productos que coincidan con tu búsqueda'
-                      : 'No hay productos en esta categoría'
+                    {menuType === 'noche' 
+                      ? (menuItems.length === 0 
+                          ? 'Aún no hay productos configurados para la carta de la noche'
+                          : 'No hay productos en esta categoría de la carta nocturna'
+                        )
+                      : searchTerm.trim() 
+                        ? 'No se encontraron productos que coincidan con tu búsqueda'
+                        : 'No hay productos en esta categoría'
                     }
                   </p>
-                  {searchTerm.trim() && (
+                  {searchTerm.trim() && menuType === 'day' && (
                     <button
                       onClick={() => setSearchTerm('')}
                       className="mt-4 text-blue-600 hover:text-blue-700 font-medium"

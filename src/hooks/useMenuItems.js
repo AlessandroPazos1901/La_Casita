@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { products, supabase } from '../services/supabaseClient';
+import { products, nightProducts, supabase } from '../services/supabaseClient';
+import { useMenuType } from '../contexts/MenuTypeContext';
 
 const useMenuItems = () => {
+  const { menuType } = useMenuType();
   const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -37,6 +39,14 @@ const useMenuItems = () => {
       cleanupAll();
     };
   }, []);
+
+  // Recargar menú cuando cambie el tipo
+  useEffect(() => {
+    if (menuType) {
+      console.log(`🔄 Tipo de menú cambió a: ${menuType} - recargando...`);
+      loadMenuItems();
+    }
+  }, [menuType]);
 
   // Manejar cambios de visibilidad de la página
   const setupVisibilityHandlers = () => {
@@ -103,16 +113,39 @@ const useMenuItems = () => {
     try {
       setLoading(true);
       setError(null);
-      
-      const { data, error } = await products.getActiveProducts();
-      
+
+      let data = [];
+      let error = null;
+
+      // Siempre cargar de la tabla productos unificada
+      console.log(`🔄 Cargando productos para carta ${menuType === 'noche' ? 'nocturna' : 'diurna'}...`);
+      const result = await products.getActiveProducts();
+
+      if (result.data) {
+        // Filtrar productos según el tipo de carta actual
+        if (menuType === 'noche') {
+          // Carta de noche: mostrar productos 'noche' o 'ambos'
+          data = result.data.filter(product =>
+            product.tipo_carta === 'noche' || product.tipo_carta === 'ambos'
+          );
+        } else {
+          // Carta del día: mostrar productos 'dia' o 'ambos'
+          data = result.data.filter(product =>
+            product.tipo_carta === 'dia' || product.tipo_carta === 'ambos'
+          );
+        }
+      }
+      error = result.error;
+
       if (error) {
         throw new Error(error);
       }
 
-      // Organizar productos por categoría
-      const organizedMenu = organizeMenuByCategory(data || []);
+      // Organizar productos por categoría según el tipo de carta
+      const organizedMenu = organizeMenuByCategory(data || [], menuType);
       setMenuItems(organizedMenu);
+
+      console.log(`📋 Cargados ${data?.length || 0} productos para carta ${menuType === 'noche' ? 'nocturna' : 'diurna'}`);
     } catch (err) {
       setError(err.message);
       console.error('Error al cargar el menú:', err);
@@ -133,16 +166,23 @@ const useMenuItems = () => {
       .channel(`productos_changes_${sessionId}`)
       .on(
         'postgres_changes',
-        { 
-          event: 'UPDATE', 
-          schema: 'public', 
-          table: 'productos' 
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'productos'
         },
         (payload) => {
-          console.log('🔄 Cambio de stock recibido en tiempo real:', payload.new);
+          console.log('🔄 Cambio de stock en productos recibido:', payload.new);
           lastHeartbeatRef.current = Date.now(); // Actualizar heartbeat
           if (payload.new && payload.new.activo) {
-            updateLocalStock(payload.new);
+            // Verificar si el producto actualizado debe mostrarse en la carta actual
+            const shouldShowInCurrentMenu = (menuType === 'noche')
+              ? (payload.new.tipo_carta === 'noche' || payload.new.tipo_carta === 'ambos')
+              : (payload.new.tipo_carta === 'dia' || payload.new.tipo_carta === 'ambos');
+
+            if (shouldShowInCurrentMenu) {
+              updateLocalStock(payload.new);
+            }
           }
         }
       )
@@ -191,17 +231,30 @@ const useMenuItems = () => {
     }
   };
 
-  const organizeMenuByCategory = (products) => {
+  const organizeMenuByCategory = (products, currentMenuType) => {
     const categories = {};
-    
+
     products.forEach(product => {
-      if (!categories[product.categoria]) {
-        categories[product.categoria] = {
-          category: product.categoria,
-          items: []
-        };
+      // Determinar qué categoría usar según el tipo de carta
+      let categoryName;
+      if (currentMenuType === 'noche') {
+        // Para carta nocturna, usar categoria_noche si existe, sino categoria
+        categoryName = product.categoria_noche || product.categoria;
+      } else {
+        // Para carta diurna, usar categoria
+        categoryName = product.categoria;
       }
-      categories[product.categoria].items.push(product);
+
+      // Solo procesar si hay categoría válida
+      if (categoryName) {
+        if (!categories[categoryName]) {
+          categories[categoryName] = {
+            category: categoryName,
+            items: []
+          };
+        }
+        categories[categoryName].items.push(product);
+      }
     });
 
     return Object.values(categories);
@@ -226,6 +279,7 @@ const useMenuItems = () => {
 
   const decrementStock = async (productId, quantity = 1) => {
     try {
+      // Ahora todos los productos están en la tabla productos unificada
       const { error } = await products.decrementStock(productId, quantity);
       if (error) {
         throw new Error(error);
@@ -239,6 +293,7 @@ const useMenuItems = () => {
 
   const incrementStock = async (productId, quantity = 1) => {
     try {
+      // Ahora todos los productos están en la tabla productos unificada
       const { error } = await products.incrementStock(productId, quantity);
       if (error) {
         throw new Error(error);
@@ -252,6 +307,7 @@ const useMenuItems = () => {
 
   const adjustStock = async (productId, adjustment) => {
     try {
+      // Ahora todos los productos están en la tabla productos unificada
       const { error } = await products.adjustStock(productId, adjustment);
       if (error) {
         throw new Error(error);

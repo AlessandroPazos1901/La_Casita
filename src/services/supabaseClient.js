@@ -174,6 +174,89 @@ export const products = {
     }
   },
 
+  // Obtener categorías de productos de día
+  getDayCategories: async () => {
+    try {
+      const { data, error } = await supabase
+        .from('categoria_menu')
+        .select('nombre')
+        .eq('activo', true)
+        .eq('turno', 'dia')
+        .order('nombre');
+
+      if (error) throw error;
+
+      const categories = data.map(item => item.nombre);
+      return { data: categories, error: null };
+    } catch (error) {
+      return { data: null, error: error.message };
+    }
+  },
+
+  // Agregar nueva categoría de día
+  addDayCategory: async (categoryName) => {
+    try {
+      const { data, error } = await supabase
+        .from('categoria_menu')
+        .insert({
+          nombre: categoryName,
+          turno: 'dia'
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return { data, error: null };
+    } catch (error) {
+      return { data: null, error: error.message };
+    }
+  },
+
+  // Actualizar nombre de categoría de día
+  updateDayCategoryName: async (oldCategoryName, newCategoryName) => {
+    try {
+      // Actualizar en tabla categoria_menu
+      const { data: categoryData, error: categoryError } = await supabase
+        .from('categoria_menu')
+        .update({ nombre: newCategoryName })
+        .eq('nombre', oldCategoryName)
+        .eq('turno', 'dia')
+        .select();
+
+      if (categoryError) throw categoryError;
+
+      // Actualizar productos que usan esta categoría
+      const { error: productError } = await supabase
+        .from('productos')
+        .update({ categoria: newCategoryName })
+        .eq('categoria', oldCategoryName);
+
+      if (productError) throw productError;
+
+      return { data: categoryData, error: null };
+    } catch (error) {
+      return { data: null, error: error.message };
+    }
+  },
+
+  // Eliminar categoría de día (desactivar productos de esa categoría)
+  deleteDayCategory: async (categoryName) => {
+    try {
+      const { data, error } = await supabase
+        .from('productos')
+        .update({ 
+          activo: false
+        })
+        .eq('categoria', categoryName)
+        .select();
+
+      if (error) throw error;
+      return { data, error: null };
+    } catch (error) {
+      return { data: null, error: error.message };
+    }
+  },
+
   // Decrementar stock
   decrementStock: async (productId, quantity) => {
     try {
@@ -219,6 +302,79 @@ export const products = {
       return { error: null };
     } catch (error) {
       return { error: error.message };
+    }
+  },
+
+  // Actualizar tipo de carta de un producto
+  updateProductCartaType: async (productId, tipoCartaData) => {
+    try {
+      const { data, error } = await supabase
+        .from('productos')
+        .update({ 
+          tipo_carta: tipoCartaData.tipoCart
+        })
+        .eq('id', productId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Si tiene categoría específica para la noche y el tipo incluye 'noche' o 'ambos'
+      if (tipoCartaData.nightCategory && (tipoCartaData.tipoCart === 'noche' || tipoCartaData.tipoCart === 'ambos')) {
+        // Esperar a que el trigger haga su trabajo, luego actualizar la categoría de noche
+        setTimeout(async () => {
+          await nightProducts.updateNightProductCategory(productId, tipoCartaData.nightCategory);
+        }, 100);
+      }
+
+      return { data, error: null };
+    } catch (error) {
+      return { data: null, error: error.message };
+    }
+  },
+
+  // Actualizar nombre de categoría de día
+  updateDayCategoryName: async (oldCategoryName, newCategoryName) => {
+    try {
+      // Actualizar en tabla categoria_menu
+      const { data: categoryData, error: categoryError } = await supabase
+        .from('categoria_menu')
+        .update({ nombre: newCategoryName })
+        .eq('nombre', oldCategoryName)
+        .eq('turno', 'dia')
+        .select();
+
+      if (categoryError) throw categoryError;
+
+      // Actualizar productos que usan esta categoría
+      const { error: productError } = await supabase
+        .from('productos')
+        .update({ categoria: newCategoryName })
+        .eq('categoria', oldCategoryName);
+
+      if (productError) throw productError;
+
+      return { data: categoryData, error: null };
+    } catch (error) {
+      return { data: null, error: error.message };
+    }
+  },
+
+  // Desactivar productos de una categoría de día
+  deactivateDayProductsByCategory: async (categoryName) => {
+    try {
+      const { data, error } = await supabase
+        .from('productos')
+        .update({ 
+          activo: false
+        })
+        .eq('categoria', categoryName)
+        .select();
+
+      if (error) throw error;
+      return { data, error: null };
+    } catch (error) {
+      return { data: null, error: error.message };
     }
   },
 
@@ -476,6 +632,168 @@ export const presupuestos = {
       return { data: null, error: error.message };
     }
   }
+};
+
+// Funciones para productos de noche (usando tabla productos con filtros)
+export const nightProducts = {
+  // Obtener categorías de productos de noche
+  getNightCategories: async () => {
+    try {
+      const { data, error } = await supabase
+        .from('categoria_menu')
+        .select('nombre')
+        .eq('activo', true)
+        .eq('turno', 'noche')
+        .order('nombre');
+
+      if (error) throw error;
+
+      const categories = data.map(item => item.nombre);
+      return { data: categories, error: null };
+    } catch (error) {
+      return { data: null, error: error.message };
+    }
+  },
+
+  // Agregar nueva categoría de noche
+  addNightCategory: async (categoryName) => {
+    try {
+      console.log(`🌙 Creando categoría de noche: "${categoryName}"`);
+
+      const { data, error } = await supabase
+        .from('categoria_menu')
+        .insert({
+          nombre: categoryName,
+          turno: 'noche'
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('❌ Error de Supabase:', error);
+        throw error;
+      }
+
+      console.log('✅ Categoría de noche creada exitosamente:', data);
+      return { data, error: null };
+    } catch (error) {
+      console.error('❌ Error creating night category:', error);
+      return { data: null, error: error.message };
+    }
+  },
+
+  // Actualizar nombre de categoría de noche
+  updateNightCategoryName: async (oldCategoryName, newCategoryName) => {
+    try {
+      // Actualizar en tabla categoria_menu
+      const { data: categoryData, error: categoryError } = await supabase
+        .from('categoria_menu')
+        .update({ nombre: newCategoryName })
+        .eq('nombre', oldCategoryName)
+        .eq('turno', 'noche')
+        .select();
+
+      if (categoryError) throw categoryError;
+
+      // Actualizar productos que usan esta categoría de noche
+      const { error: productError } = await supabase
+        .from('productos')
+        .update({ categoria_noche: newCategoryName })
+        .eq('categoria_noche', oldCategoryName);
+
+      if (productError) throw productError;
+
+      return { data: categoryData, error: null };
+    } catch (error) {
+      return { data: null, error: error.message };
+    }
+  },
+
+  // Eliminar categoría de noche
+  deleteNightCategory: async (categoryName) => {
+    try {
+      // Desactivar la categoría en categoria_menu
+      const { data: categoryData, error: categoryError } = await supabase
+        .from('categoria_menu')
+        .update({ activo: false })
+        .eq('nombre', categoryName)
+        .eq('turno', 'noche')
+        .select();
+
+      if (categoryError) throw categoryError;
+
+      // Desactivar productos que usan esta categoría de noche
+      const { error: productError } = await supabase
+        .from('productos')
+        .update({ activo: false })
+        .eq('categoria_noche', categoryName);
+
+      if (productError) throw productError;
+
+      return { data: categoryData, error: null };
+    } catch (error) {
+      return { data: null, error: error.message };
+    }
+  }
+};
+
+// Funciones para configuraciones del sistema
+export const configuration = {
+  // Obtener tipo de menú actual
+  getMenuType: async () => {
+    try {
+      const { data, error } = await supabase
+        .from('configuraciones')
+        .select('value')
+        .eq('key', 'menu_type')
+        .single();
+
+      if (error) {
+        // Si no existe la configuración, crearla con valor por defecto
+        if (error.code === 'PGRST116') {
+          return await configuration.setMenuType('dia');
+        }
+        throw error;
+      }
+      return { data: { menu_type: data.value }, error: null };
+    } catch (error) {
+      return { data: null, error: error.message };
+    }
+  },
+
+  // Establecer tipo de menú
+  setMenuType: async (menuType) => {
+    try {
+      const { data, error } = await supabase
+        .from('configuraciones')
+        .upsert({
+          key: 'menu_type',
+          value: menuType,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'key'
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return { data, error: null };
+    } catch (error) {
+      return { data: null, error: error.message };
+    }
+  }
+};
+
+// Cliente principal exportado para usar en el contexto
+export const supabaseClient = {
+  client: supabase,
+  auth,
+  products,
+  nightProducts,
+  orders,
+  gastos,
+  presupuestos,
+  configuration
 };
 
 export default supabase;
