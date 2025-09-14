@@ -5,7 +5,7 @@ import { supabaseClient } from '../services/supabaseClient';
 const MenuTypeContext = createContext(null);
 
 export const MenuTypeProvider = ({ children }) => {
-  const [menuType, setMenuType] = useState('day');
+  const [menuType, setMenuType] = useState('dia');
   const [loading, setLoading] = useState(true);
 
   // Cargar el tipo de menú inicial desde Supabase
@@ -18,13 +18,13 @@ export const MenuTypeProvider = ({ children }) => {
         if (error) {
           console.error('Error loading menu type:', error);
           // Si hay error, usar valor por defecto
-          setMenuType('day');
+          setMenuType('dia');
         } else if (data) {
-          setMenuType(data.menu_type || 'day');
+          setMenuType(data.menu_type || 'dia');
         }
       } catch (error) {
         console.error('Error loading menu type:', error);
-        setMenuType('day');
+        setMenuType('dia');
       } finally {
         setLoading(false);
       }
@@ -45,7 +45,7 @@ export const MenuTypeProvider = ({ children }) => {
       }
       
       if (data) {
-        setMenuType(data.menu_type || 'day');
+        setMenuType(data.menu_type || 'dia');
       }
       return { success: true };
     } catch (error) {

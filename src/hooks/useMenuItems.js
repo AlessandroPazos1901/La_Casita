@@ -129,9 +129,12 @@ const useMenuItems = () => {
             product.tipo_carta === 'noche' || product.tipo_carta === 'ambos'
           );
         } else {
-          // Carta del día: mostrar productos 'dia' o 'ambos'
+          // Carta del día: mostrar productos 'dia', 'ambos' o null/undefined (default)
           data = result.data.filter(product =>
-            product.tipo_carta === 'dia' || product.tipo_carta === 'ambos'
+            product.tipo_carta === 'dia' ||
+            product.tipo_carta === 'ambos' ||
+            !product.tipo_carta ||
+            product.tipo_carta === null
           );
         }
       }
@@ -178,7 +181,7 @@ const useMenuItems = () => {
             // Verificar si el producto actualizado debe mostrarse en la carta actual
             const shouldShowInCurrentMenu = (menuType === 'noche')
               ? (payload.new.tipo_carta === 'noche' || payload.new.tipo_carta === 'ambos')
-              : (payload.new.tipo_carta === 'dia' || payload.new.tipo_carta === 'ambos');
+              : (payload.new.tipo_carta === 'dia' || payload.new.tipo_carta === 'ambos' || !payload.new.tipo_carta || payload.new.tipo_carta === null);
 
             if (shouldShowInCurrentMenu) {
               updateLocalStock(payload.new);
@@ -233,6 +236,7 @@ const useMenuItems = () => {
 
   const organizeMenuByCategory = (products, currentMenuType) => {
     const categories = {};
+    console.log(`🏷️ Organizando categorías para tipo de carta: ${currentMenuType}`);
 
     products.forEach(product => {
       // Determinar qué categoría usar según el tipo de carta
@@ -240,9 +244,11 @@ const useMenuItems = () => {
       if (currentMenuType === 'noche') {
         // Para carta nocturna, usar categoria_noche si existe, sino categoria
         categoryName = product.categoria_noche || product.categoria;
+        console.log(`🌙 Producto ${product.nombre}: categoria_noche="${product.categoria_noche}" → usando "${categoryName}"`);
       } else {
         // Para carta diurna, usar categoria
         categoryName = product.categoria;
+        console.log(`☀️ Producto ${product.nombre}: categoria="${product.categoria}" → usando "${categoryName}"`);
       }
 
       // Solo procesar si hay categoría válida
@@ -257,7 +263,10 @@ const useMenuItems = () => {
       }
     });
 
-    return Object.values(categories);
+    const finalCategories = Object.values(categories);
+    console.log(`📋 Categorías finales para carta ${currentMenuType}:`, finalCategories.map(cat => `${cat.category} (${cat.items.length} productos)`));
+
+    return finalCategories;
   };
 
   const updateLocalStock = (updatedProduct) => {

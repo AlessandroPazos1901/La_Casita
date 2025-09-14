@@ -79,11 +79,11 @@ const Header = ({ user, userRole, mozoName, onLogout, userName, onToggleSidebar 
 
           {/* Indicador de tipo de menú */}
           <div className="flex items-center space-x-2 bg-gray-50 border border-gray-200 rounded-full px-3 py-2">
-            <span className="text-xl" title={menuType === 'day' ? 'Carta del Día' : 'Carta de la Noche'}>
-              {menuType === 'day' ? '☀️' : '🌙'}
+            <span className="text-xl" title={menuType === 'dia' ? 'Carta del Día' : 'Carta de la Noche'}>
+              {menuType === 'dia' ? '☀️' : '🌙'}
             </span>
             <span className="hidden sm:block text-sm font-medium text-gray-700">
-              {menuType === 'day' ? 'Día' : 'Noche'}
+              {menuType === 'dia' ? 'Día' : 'Noche'}
             </span>
           </div>
 
