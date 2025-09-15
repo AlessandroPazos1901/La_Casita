@@ -114,18 +114,23 @@ const MenuPage = () => {
     }
   }, [orderError, showError, clearOrderError]);
 
-  // Seleccionar "Menu" por defecto cuando se cargan las categorías
+  // Seleccionar categoría por defecto según el tipo de menú
   React.useEffect(() => {
     if (categories.length > 0 && !selectedCategory) {
-      const menuCategory = categories.find(cat => cat.toLowerCase() === 'menu');
-      if (menuCategory) {
-        setSelectedCategory(menuCategory);
+      // Para carta de noche, buscar "Broaster", para carta de día buscar "Menu"
+      const defaultCategoryName = menuType === 'noche' ? 'broaster' : 'menu';
+      const defaultCategory = categories.find(cat =>
+        cat.toLowerCase() === defaultCategoryName.toLowerCase()
+      );
+
+      if (defaultCategory) {
+        setSelectedCategory(defaultCategory);
       } else {
-        // Si no existe "Menu", seleccionar la primera categoría disponible
+        // Si no existe la categoría por defecto, seleccionar la primera categoría disponible
         setSelectedCategory(categories[0]);
       }
     }
-  }, [categories, selectedCategory]);
+  }, [categories, selectedCategory, menuType]);
   const handleAddToOrder = async (item) => {
     const result = await addToOrder(item);
     if (result.success) {
