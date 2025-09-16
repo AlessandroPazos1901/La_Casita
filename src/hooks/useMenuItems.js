@@ -236,7 +236,7 @@ const useMenuItems = () => {
 
   const organizeMenuByCategory = (products, currentMenuType) => {
     const categories = {};
-    console.log(`🏷️ Organizando categorías para tipo de carta: ${currentMenuType}`);
+    // console.log(`🏷️ Organizando categorías para tipo de carta: ${currentMenuType}`);
 
     products.forEach(product => {
       // Determinar qué categoría usar según el tipo de carta
@@ -244,11 +244,11 @@ const useMenuItems = () => {
       if (currentMenuType === 'noche') {
         // Para carta nocturna, usar categoria_noche si existe, sino categoria
         categoryName = product.categoria_noche || product.categoria;
-        console.log(`🌙 Producto ${product.nombre}: categoria_noche="${product.categoria_noche}" → usando "${categoryName}"`);
+        // console.log(`🌙 Producto ${product.nombre}: categoria_noche="${product.categoria_noche}" → usando "${categoryName}"`);
       } else {
         // Para carta diurna, usar categoria
         categoryName = product.categoria;
-        console.log(`☀️ Producto ${product.nombre}: categoria="${product.categoria}" → usando "${categoryName}"`);
+        // console.log(`☀️ Producto ${product.nombre}: categoria="${product.categoria}" → usando "${categoryName}"`);
       }
 
       // Solo procesar si hay categoría válida

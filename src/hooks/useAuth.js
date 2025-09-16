@@ -10,13 +10,13 @@ const useAuth = () => {
     console.log('AUTH: Verificando estado de autenticación...');
     try {
       const currentUser = await auth.getCurrentUser();
-      console.log('AUTH: currentUser:', currentUser);
+      // console.log('AUTH: currentUser:', currentUser);
       
       if (currentUser) {
         setUser(currentUser);
         
         const userProfile = await auth.getUserProfile(currentUser);
-        console.log('AUTH: userProfile:', userProfile);
+        // console.log('AUTH: userProfile:', userProfile);
         setProfile(userProfile);
       }
     } catch (error) {

@@ -284,10 +284,11 @@ export const DataCacheProvider = ({ children }) => {
   const getFreshDailyData = async (date) => {
     try {
       console.log(`📊 Cargando datos frescos para: ${date}`);
-      
+
       const startOfDay = `${date}T00:00:00`;
       const endOfDay = `${date}T23:59:59`;
 
+      // Primero intentamos obtener datos de la tabla 'pedidos' (día actual)
       const [ventasDelDia, gastosDelDia] = await Promise.all([
         supabase
           .from('pedidos')
@@ -301,7 +302,7 @@ export const DataCacheProvider = ({ children }) => {
           .eq('estado', 'pagado')
           .gte('created_at', startOfDay)
           .lte('created_at', endOfDay),
-        
+
         supabase
           .from('gastos')
           .select('*')
@@ -311,9 +312,105 @@ export const DataCacheProvider = ({ children }) => {
       if (ventasDelDia.error) throw ventasDelDia.error;
       if (gastosDelDia.error) throw gastosDelDia.error;
 
+      let ventas = ventasDelDia.data || [];
+      let gastos = gastosDelDia.data || [];
+
+      // Si no hay ventas en 'pedidos', buscar en datos históricos
+      if (ventas.length === 0) {
+        console.log(`🔍 No se encontraron pedidos activos para ${date}, buscando datos históricos...`);
+
+        try {
+          // Obtener datos de productos vendidos de reportes_productos_diarios
+          const reportesProductosResult = await supabase
+            .from('reportes_productos_diarios')
+            .select(`
+              *,
+              producto:productos!left (*)
+            `)
+            .eq('fecha', date);
+
+          let productosVendidos = [];
+          let totalIngresosDia = 0;
+
+          if (reportesProductosResult.data && !reportesProductosResult.error && reportesProductosResult.data.length > 0) {
+            const reportesProductos = reportesProductosResult.data;
+            console.log(`✅ Encontrados productos vendidos para ${date}:`, reportesProductos);
+
+            // Procesar productos vendidos con detalles completos
+            productosVendidos = reportesProductos.map(reporte => ({
+              nombre: reporte.producto?.nombre || `Producto ${reporte.producto_id}`,
+              cantidad: parseInt(reporte.cantidad_vendida || 0),
+              precioUnitario: reporte.cantidad_vendida > 0 ?
+                parseFloat(reporte.ingresos_generados || 0) / parseInt(reporte.cantidad_vendida) : 0,
+              total: parseFloat(reporte.ingresos_generados || 0)
+            }));
+
+            totalIngresosDia = reportesProductos.reduce((sum, reporte) =>
+              sum + parseFloat(reporte.ingresos_generados || 0), 0);
+          }
+
+          // Intentar obtener datos de reportes_diarios para métodos de pago
+          const reportesDiariosResult = await supabase
+            .from('reportes_diarios')
+            .select('*')
+            .eq('fecha', date)
+            .maybeSingle();
+
+          let datosCompletos = null;
+          if (reportesDiariosResult.data && !reportesDiariosResult.error) {
+            datosCompletos = reportesDiariosResult.data;
+            console.log(`✅ Encontrado reporte diario completo para ${date}:`, datosCompletos);
+          }
+
+          // Si no hay reporte diario completo, usar vista ventas_diarias para totales
+          if (!datosCompletos && totalIngresosDia === 0) {
+            console.log(`📊 Intentando con vista ventas_diarias para ${date}...`);
+
+            const ventasDiariasResult = await supabase
+              .from('ventas_diarias')
+              .select('*')
+              .eq('fecha', date);
+
+            if (ventasDiariasResult.data && ventasDiariasResult.data.length > 0) {
+              const ventaDiaria = ventasDiariasResult.data[0];
+              totalIngresosDia = ventaDiaria.total_ventas || 0;
+              console.log(`✅ Encontrado en vista ventas_diarias para ${date}:`, ventaDiaria);
+            }
+          }
+
+          // Crear venta simulada con todos los datos disponibles
+          if (totalIngresosDia > 0 || productosVendidos.length > 0) {
+            ventas = [{
+              id: `historico-${date}`,
+              numero_pedido: `Histórico ${date}`,
+              total: datosCompletos?.ingresos_totales || totalIngresosDia,
+              metodo_pago: 'resumen',
+              created_at: `${date}T12:00:00`,
+              estado: 'pagado',
+              mesa: 'Resumen Histórico',
+              resumen_diario: {
+                ingresos_efectivo: datosCompletos?.ingresos_efectivo || 0,
+                ingresos_pos: datosCompletos?.ingresos_pos || 0,
+                ingresos_yape_plin: datosCompletos?.ingresos_yape_plin || 0,
+                numero_pedidos: datosCompletos?.total_pedidos ||
+                  (productosVendidos.length > 0 ? productosVendidos.length : 1),
+                productos_vendidos: productosVendidos,
+                pedidos_detalle: datosCompletos?.pedidos_detalle ?
+                  (typeof datosCompletos.pedidos_detalle === 'string' ?
+                    JSON.parse(datosCompletos.pedidos_detalle) :
+                    datosCompletos.pedidos_detalle) : []
+              },
+              pedido_items: []
+            }];
+          }
+        } catch (error) {
+          console.error('Error buscando datos históricos:', error);
+        }
+      }
+
       return {
-        ventas: ventasDelDia.data || [],
-        gastos: gastosDelDia.data || []
+        ventas,
+        gastos
       };
     } catch (error) {
       console.error('Error loading fresh daily data:', error);
