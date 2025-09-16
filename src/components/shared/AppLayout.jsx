@@ -24,24 +24,24 @@ const AppLayout = () => {
   return (
     <>
       <RealtimeNotifier />
-      <div className="flex h-screen bg-gray-100">
+      <div className="flex h-screen bg-gray-100 prevent-horizontal-scroll w-full">
         {/* El Sidebar solo se muestra si el usuario es admin */}
-        {hasManagementAccess && 
-        <Sidebar 
+        {hasManagementAccess &&
+        <Sidebar
         userRole={userRole}
         isSidebarOpen={isSidebarOpen}
         onClose={toggleSidebar} />}
-        
+
         <div className="flex-1 flex flex-col overflow-hidden">
-          <Header 
-            user={user} 
-            userRole={userRole} 
+          <Header
+            user={user}
+            userRole={userRole}
             mozoName={mozoName}
             onLogout={logout}
             userName={userName}
-            onToggleSidebar={toggleSidebar} 
+            onToggleSidebar={toggleSidebar}
           />
-          <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-4 md:p-6">
+          <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-4 md:p-6 mobile-scroll-container touch-scroll">
             {/* Outlet renderizará el componente de la ruta hija (ej: Dashboard, MenuPage) */}
             <Outlet />
           </main>

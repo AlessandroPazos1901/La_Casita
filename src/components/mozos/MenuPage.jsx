@@ -606,7 +606,7 @@ const MenuPage = () => {
       {/* Botón flotante del carrito para móvil - Mejorado */}
       <button
         onClick={() => setMobileCartOpen(true)}
-        className="lg:hidden fixed bottom-6 right-6 w-16 h-16 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-xl flex items-center justify-center z-50 transform transition-all duration-300 hover:scale-110 active:scale-95"
+        className="lg:hidden fixed bottom-4 right-4 w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-xl flex items-center justify-center z-40 transform transition-all duration-300 hover:scale-110 active:scale-95 touch-optimized"
       >
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m-2.4 8L5 3H3m4 10v4a2 2 0 002 2h8a2 2 0 002-2v-4M9 17h6" />

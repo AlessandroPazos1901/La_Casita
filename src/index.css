@@ -204,6 +204,150 @@ body {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+/* Soluciones para problemas de scroll en móviles */
+
+/* 1. Prevent scroll cuando hay modales abiertos */
+.modal-open {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+}
+
+/* 2. Mejoras para scroll en dispositivos táctiles */
+.touch-scroll {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  overscroll-behavior: contain;
+}
+
+/* 3. Fix para elementos fixed en iOS */
+.ios-fixed-fix {
+  position: -webkit-sticky;
+  position: sticky;
+}
+
+/* 4. Prevenir zoom inadvertido en inputs en iOS */
+@media screen and (max-width: 767px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="search"],
+  textarea,
+  select {
+    font-size: 16px !important;
+    transform: scale(1);
+  }
+}
+
+/* 5. Optimización de touch para elementos interactivos */
+.touch-optimized {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 6. Smooth scroll para toda la aplicación */
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  touch-action: manipulation;
+}
+
+/* Fix para eliminar márgenes y espacios en blanco en móviles */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+}
+
+/* Fix para el root element */
+#root {
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+}
+
+/* 7. Fix para scroll en modales con contenido largo */
+.modal-scroll-container {
+  max-height: 85vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 8. Prevenir scroll del body cuando hay overlays */
+.scroll-lock {
+  overflow: hidden !important;
+  position: fixed !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* 9. Mejoras para elementos fixed en móviles */
+@media (max-width: 768px) {
+  .mobile-fixed {
+    position: absolute;
+  }
+
+  .mobile-fixed-bottom {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+  }
+}
+
+/* 10. Fix para scroll horizontal no deseado */
+.prevent-horizontal-scroll {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* 10.1. Fix adicionales para evitar espacios en blanco */
+.full-width-container {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* 10.2. Mejoras para tablas responsivas */
+@media (max-width: 768px) {
+  .responsive-table {
+    font-size: 14px;
+  }
+
+  .responsive-table th,
+  .responsive-table td {
+    padding: 8px 4px !important;
+    white-space: nowrap;
+  }
+
+  .responsive-padding {
+    padding: 16px !important;
+  }
+}
+
+/* 11. Smooth transitions para scroll */
+.smooth-scroll {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 12. Container para contenido scrolleable en móviles */
+.mobile-scroll-container {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
 /* Dark mode ready (opcional para el futuro) */
 @media (prefers-color-scheme: dark) {
   .dark-mode-ready {

@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import useScrollLock from '../../hooks/useScrollLock';
 
 const MobileCart = ({ 
   isOpen, 
@@ -13,18 +14,8 @@ const MobileCart = ({
   editingOrderId,
   loading = false
 }) => {
-  useEffect(() => {
-    if (isOpen) {
-      // Bloquear scroll del body cuando el carrito está abierto
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen]);
+  // Usar el hook de scroll lock
+  useScrollLock(isOpen);
 
   const handleOverlayClick = (e) => {
     if (e.target === e.currentTarget) {
@@ -40,14 +31,14 @@ const MobileCart = ({
     <>
       {/* Overlay */}
       {isOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden modal-overlay touch-optimized"
           onClick={handleOverlayClick}
         />
       )}
-      
+
       {/* Carrito deslizable */}
-      <div className={`fixed inset-y-0 right-0 w-full max-w-sm bg-white shadow-xl z-50 transform transition-transform duration-300 lg:hidden ${
+      <div className={`fixed inset-y-0 right-0 w-full max-w-sm bg-white shadow-xl z-50 transform transition-transform duration-300 lg:hidden touch-optimized ${
         isOpen ? 'translate-x-0' : 'translate-x-full'
       }`}>
         <div className="flex flex-col h-full">
@@ -82,7 +73,7 @@ const MobileCart = ({
           </div>
 
           {/* Items del pedido */}
-          <div className="flex-1 overflow-y-auto p-4">
+          <div className="flex-1 overflow-y-auto p-4 mobile-scroll-container touch-scroll">
             {currentOrder.length === 0 ? (
               <div className="text-center py-12">
                 {/* ... (tu mensaje de carrito vacío no cambia) ... */}

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useDataCache } from '../../../contexts/DataCacheContext';
 import { supabase } from '../../../services/supabaseClient';
 import ReporteCierreDia from '../../shared/ReporteCierreDia';
+import useScrollLock from '../../../hooks/useScrollLock';
 
 function ReporteDiaSection() {
   const { getFreshDailyData, 
@@ -17,6 +18,10 @@ function ReporteDiaSection() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showPrintModal, setShowPrintModal] = useState(false);
+
+  // Hook para manejar el scroll lock cuando se abre el modal
+  useScrollLock(showPrintModal);
+
   const [dailyData, setDailyData] = useState({
     ingresos: [],
     gastos: [],
@@ -307,10 +312,10 @@ function ReporteDiaSection() {
   const fechaFutura = new Date(reportDate) > new Date();
 
   return (
-    <div className="bg-white p-8 rounded-lg shadow-xl">
-      <h1 className="text-4xl font-extrabold text-gray-800 mb-8 border-b-4 border-orange-500 pb-2">
-        <i className="fas fa-calendar-day text-orange-500 mr-3"></i>
-        Reporte del Día
+    <div className="bg-white responsive-padding md:p-8 rounded-lg shadow-xl w-full max-w-full overflow-x-hidden full-width-container">
+      <h1 className="text-2xl md:text-4xl font-extrabold text-gray-800 mb-6 md:mb-8 border-b-4 border-orange-500 pb-2">
+        <i className="fas fa-calendar-day text-orange-500 mr-2 md:mr-3"></i>
+        <span className="block sm:inline">Reporte del Día</span>
       </h1>
       {/* Botones de acción */}
       <div className="flex flex-wrap gap-4 mb-6">
@@ -519,7 +524,7 @@ function ReporteDiaSection() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full bg-white rounded-lg shadow-md">
+            <table className="min-w-full bg-white rounded-lg shadow-md responsive-table">
               <thead>
                 <tr className="bg-red-200 text-red-800 uppercase text-sm leading-normal">
                   <th className="py-3 px-6 text-left rounded-tl-lg">Categoría</th>
@@ -563,9 +568,9 @@ function ReporteDiaSection() {
             <p className="text-gray-500 text-lg">No hay productos vendidos para esta fecha.</p>
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div className="bg-white rounded-lg shadow-md overflow-hidden w-full">
             <div className="overflow-x-auto">
-              <table className="min-w-full">
+              <table className="min-w-full w-full responsive-table">
                 <thead className="bg-green-200 text-green-800">
                   <tr className="uppercase text-sm leading-normal">
                     <th className="py-3 px-6 text-left rounded-tl-lg">#</th>
@@ -658,8 +663,8 @@ function ReporteDiaSection() {
 
       {/* Modal de Impresión */}
       {showPrintModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-overlay touch-optimized">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden modal-content">
             <div className="p-6 border-b border-gray-200">
               <h3 className="text-xl font-bold text-gray-800 mb-2">
                 📄 Reporte Detallado de Cierre de Día
@@ -669,7 +674,7 @@ function ReporteDiaSection() {
               </p>
             </div>
 
-            <div className="p-6 overflow-y-auto max-h-[60vh]">
+            <div className="p-6 modal-scroll-container">
               <div className="bg-gray-50 p-4 rounded-lg mb-4">
                 <p className="text-sm text-gray-700 mb-2">
                   <strong>Vista previa del reporte:</strong> Este reporte contiene todos los detalles de ventas, productos vendidos, métodos de pago y gastos del día.
