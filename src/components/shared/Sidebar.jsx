@@ -160,9 +160,9 @@ const Sidebar = ({  userRole, isSidebarOpen, onClose }) => {
           </div>
         </div>
 
-        {/* Navigation (tu código original sin cambios) */}
-        <nav className="flex-1 mt-6">
-          <ul className="space-y-1">
+        {/* Navigation con scroll mejorado para móvil */}
+        <nav className="flex-1 mt-6 overflow-y-auto mobile-scroll-container touch-scroll">
+          <ul className="space-y-1 pb-4">
             {currentMenu.map((item, index) => {
               if (item.separator) {
               return (

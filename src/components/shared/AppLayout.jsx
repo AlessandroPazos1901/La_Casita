@@ -41,7 +41,7 @@ const AppLayout = () => {
             userName={userName}
             onToggleSidebar={toggleSidebar}
           />
-          <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-4 md:p-6 mobile-scroll-container touch-scroll">
+          <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-4 md:p-6 mobile-scroll-container touch-scroll smooth-scroll">
             {/* Outlet renderizará el componente de la ruta hija (ej: Dashboard, MenuPage) */}
             <Outlet />
           </main>

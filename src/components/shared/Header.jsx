@@ -27,7 +27,7 @@ const Header = ({ user, userRole, mozoName, onLogout, userName, onToggleSidebar 
   };
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+    <header className="sticky top-0 z-30 bg-white shadow-sm border-b border-gray-200 px-6 py-4 ios-fixed-fix">
       <div className="flex justify-between items-center">
         {/* Información del usuario */}
         <div className="flex items-center space-x-4">
