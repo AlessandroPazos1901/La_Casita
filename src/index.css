@@ -261,14 +261,14 @@ html, body {
   margin: 0;
   padding: 0;
   width: 100%;
-  height: 100%;
+  min-height: 100%;
   overflow-x: hidden;
 }
 
 /* Fix para el root element */
 #root {
   width: 100%;
-  height: 100%;
+  min-height: 100vh;
   overflow-x: hidden;
 }
 
@@ -283,9 +283,6 @@ html, body {
 /* 8. Prevenir scroll del body cuando hay overlays */
 .scroll-lock {
   overflow: hidden !important;
-  position: fixed !important;
-  width: 100% !important;
-  height: 100% !important;
 }
 
 /* 9. Mejoras para elementos fixed en móviles */
@@ -303,10 +300,11 @@ html, body {
   }
 }
 
-/* 10. Fix para scroll horizontal no deseado */
+/* 10. Fix para scroll horizontal no deseado - Versión más suave */
 .prevent-horizontal-scroll {
   overflow-x: hidden;
-  max-width: 100vw;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 /* 10.1. Fix adicionales para evitar espacios en blanco */
@@ -346,6 +344,29 @@ html, body {
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
+}
+
+/* 13. Fixes para cambios de viewport dinámicos */
+.viewport-stable {
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+/* 14. Evitar problemas con developer tools */
+@media (max-width: 768px) {
+  .mobile-layout {
+    min-height: 100vh;
+    width: 100vw;
+    overflow-x: hidden;
+    position: relative;
+  }
+}
+
+/* 15. Transiciones suaves para cambios de layout */
+.layout-transition {
+  transition: all 0.3s ease;
 }
 
 /* Dark mode ready (opcional para el futuro) */

@@ -24,7 +24,7 @@ const AppLayout = () => {
   return (
     <>
       <RealtimeNotifier />
-      <div className="flex h-screen bg-gray-100 prevent-horizontal-scroll w-full">
+      <div className="flex h-screen bg-gray-100 w-full" style={{ maxWidth: '100vw', overflowX: 'hidden' }}>
         {/* El Sidebar solo se muestra si el usuario es admin */}
         {hasManagementAccess &&
         <Sidebar
