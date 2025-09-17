@@ -367,7 +367,8 @@ function ReporteDiaSection() {
               onClick={() => {
                 const yesterday = new Date();
                 yesterday.setDate(yesterday.getDate() - 1);
-                setReportDate(yesterday.toISOString().split('T')[0]);
+                const yesterdayStr = yesterday.toLocaleDateString('en-CA'); // Format: YYYY-MM-DD
+                setReportDate(yesterdayStr);
               }}
               className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-all duration-200"
             >
@@ -663,9 +664,10 @@ function ReporteDiaSection() {
 
       {/* Modal de Impresión */}
       {showPrintModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-overlay touch-optimized">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden modal-content">
-            <div className="p-6 border-b border-gray-200">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style={{ zIndex: 1000 }}>
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[95vh] flex flex-col">
+            {/* Header */}
+            <div className="p-6 border-b border-gray-200 flex-shrink-0">
               <h3 className="text-xl font-bold text-gray-800 mb-2">
                 📄 Reporte Detallado de Cierre de Día
               </h3>
@@ -674,64 +676,75 @@ function ReporteDiaSection() {
               </p>
             </div>
 
-            <div className="p-6 modal-scroll-container">
-              <div className="bg-gray-50 p-4 rounded-lg mb-4">
+            {/* Content */}
+            <div className="p-6 flex-1 overflow-y-auto">
+              <div className="bg-gray-50 p-4 rounded-lg">
                 <p className="text-sm text-gray-700 mb-2">
                   <strong>Vista previa del reporte:</strong> Este reporte contiene todos los detalles de ventas, productos vendidos, métodos de pago y gastos del día.
                 </p>
-                <div className="border border-gray-300 rounded-lg overflow-hidden" style={{ transform: 'scale(0.8)', transformOrigin: 'top left', width: '125%' }}>
-                  <ReporteCierreDia reportData={dailyData} reportDate={reportDate} />
+                <div className="border border-gray-300 rounded-lg overflow-hidden bg-white">
+                  <div style={{ transform: 'scale(0.9)', transformOrigin: 'top center' }}>
+                    <ReporteCierreDia reportData={dailyData} reportDate={reportDate} />
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="p-6 border-t border-gray-200 flex flex-wrap gap-3 justify-end">
-              <button
-                onClick={() => setShowPrintModal(false)}
-                className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200"
-              >
-                ❌ Cancelar
-              </button>
-              <button
-                onClick={() => {
-                  const printWindow = window.open('', '_blank');
-                  printWindow.document.write(`
-                    <!DOCTYPE html>
-                    <html>
-                      <head>
-                        <title>Reporte Cierre de Día - ${reportDate}</title>
-                        <style>
-                          body { margin: 0; padding: 0; }
-                          @media print {
-                            body { margin: 0; }
-                            @page { margin: 0; size: 58mm auto; }
-                          }
-                        </style>
-                      </head>
-                      <body>
-                        <div id="print-content"></div>
-                      </body>
-                    </html>
-                  `);
+            {/* Footer with buttons */}
+            <div className="p-6 border-t border-gray-200 flex-shrink-0">
+              <div className="flex flex-wrap gap-3 justify-end">
+                <button
+                  onClick={() => setShowPrintModal(false)}
+                  className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-5 rounded-lg transition-colors duration-200"
+                >
+                  ❌ Cancelar
+                </button>
+                <button
+                  onClick={() => {
+                    const printWindow = window.open('', '_blank');
+                    printWindow.document.write(`
+                      <!DOCTYPE html>
+                      <html>
+                        <head>
+                          <title>Reporte Cierre de Día - ${reportDate}</title>
+                          <style>
+                            body { margin: 0; padding: 0; }
+                            @media print {
+                              body { margin: 0; }
+                              @page { margin: 0; size: 80mm auto; }
+                            }
+                          </style>
+                        </head>
+                        <body>
+                          <div id="print-content"></div>
+                        </body>
+                      </html>
+                    `);
 
-                  const reportElement = document.createElement('div');
-                  reportElement.innerHTML = document.querySelector('.border.border-gray-300 > div').innerHTML;
-                  printWindow.document.getElementById('print-content').appendChild(reportElement);
+                    // Buscar el componente ReporteCierreDia en el DOM
+                    const reportElement = document.querySelector('[style*="width: 80mm"]');
+                    if (reportElement) {
+                      const clonedElement = reportElement.cloneNode(true);
+                      printWindow.document.getElementById('print-content').appendChild(clonedElement);
+                    }
 
-                  printWindow.document.close();
-                  printWindow.focus();
-                  printWindow.print();
-                }}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200"
-              >
-                🖨️ Imprimir
-              </button>
-              <button
-                onClick={confirmarCierreDespuesDeImprimir}
-                className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200"
-              >
-                🔒 Imprimir y Cerrar Día
-              </button>
+                    printWindow.document.close();
+                    printWindow.focus();
+                    printWindow.print();
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-5 rounded-lg transition-colors duration-200"
+                >
+                  🖨️ Imprimir
+                </button>
+                {esHoy && !dailyData.esResumenDiario && (
+                  <button
+                    onClick={confirmarCierreDespuesDeImprimir}
+                    className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-5 rounded-lg transition-colors duration-200"
+                  >
+                    🔒 Imprimir y Cerrar Día
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>

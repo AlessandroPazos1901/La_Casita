@@ -27,7 +27,7 @@ export const BoletaTermica = React.forwardRef(({ order }, ref) => {
             <h1 className="text-lg font-bold">La Casita Restaurant</h1>
             <p>Huanuco, Peru</p>
             <p>Ticket de Venta</p>
-            <p>RUC: 20.... </p>
+            <p>RUC: 20489478677 </p>
           </div>
           <div className="my-2 border-t border-dashed border-black"></div>
           <p><strong>Mesa:</strong> {order.mesa}</p>

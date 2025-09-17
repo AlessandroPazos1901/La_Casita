@@ -69,13 +69,13 @@ function ReporteCierreDia({ reportData, reportDate }) {
 
   return (
     <div style={{
-      width: '58mm',
+      width: '80mm',
       fontFamily: 'monospace',
-      fontSize: '10px',
-      lineHeight: '1.2',
+      fontSize: '12px',
+      lineHeight: '1.3',
       color: '#000',
       backgroundColor: '#fff',
-      padding: '5mm'
+      padding: '8mm'
     }}>
       {/* Encabezado */}
       <div style={{ textAlign: 'center', marginBottom: '5mm' }}>

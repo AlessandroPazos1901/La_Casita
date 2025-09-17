@@ -178,7 +178,20 @@ const OrderHistoryPage = () => {
       
       // Preparar para impresión
       console.log('Iniciando proceso de impresión para orden:', result.data);
-      setOrderToPrint(result.data);
+
+      // Calcular el delivery fee si es necesario
+      const itemsTotal = result.data.pedido_items?.reduce(
+        (sum, item) => sum + (item.cantidad * item.precio_unitario), 0
+      ) || 0;
+      const deliveryFee = parseFloat(result.data.total) - itemsTotal;
+
+      // Añadir el delivery fee a la orden para la impresión
+      const orderWithDelivery = {
+        ...result.data,
+        delivery: deliveryFee > 0.01 ? deliveryFee : 0
+      };
+
+      setOrderToPrint(orderWithDelivery);
       setShowPrintModal(true);
       
       refreshCache();
