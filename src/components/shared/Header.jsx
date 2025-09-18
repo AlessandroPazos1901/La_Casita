@@ -18,29 +18,27 @@ const Header = ({ user, userRole, mozoName, onLogout, userName, onToggleSidebar 
         return 'Usuario';
     }
   };
-
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Buenos días';
-    if (hour < 18) return 'Buenas tardes';
-    return 'Buenas noches';
-  };
-
   return (
-    <header className="sticky top-0 z-30 bg-white shadow-sm border-b border-gray-200 px-6 py-4 ios-fixed-fix">
+    <header className={`sticky top-0 z-30 shadow-sm border-b px-6 py-4 ios-fixed-fix transition-colors duration-300 ${
+      menuType === 'dia'
+        ? 'bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200'
+        : 'bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200'
+    }`}>
       <div className="flex justify-between items-center">
         {/* Información del usuario */}
         <div className="flex items-center space-x-4">
-          {/* Será visible solo en pantallas pequeñas (lg:hidden) */}
-          <button
-            onClick={onToggleSidebar}
-            className="lg:hidden p-2 text-gray-600 hover:text-gray-900"
-            aria-label="Abrir menú"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
+          {/* Botón hamburguesa - Solo visible para admins y cajeros */}
+          {(userRole === 'admin' || userRole === 'cajero') && (
+            <button
+              onClick={onToggleSidebar}
+              className="lg:hidden p-2 text-gray-600 hover:text-gray-900 transition-colors"
+              aria-label="Abrir menú"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          )}
           
           <div className="flex items-center space-x-3">
             {/* Avatar */}
@@ -53,7 +51,7 @@ const Header = ({ user, userRole, mozoName, onLogout, userName, onToggleSidebar 
             {/* Información del usuario */}
             <div>
               <h2 className="text-lg font-semibold text-gray-800">
-                {getGreeting()}, {userName}
+                {userName}
               </h2>
               <p className="text-sm text-gray-600">
                 {getRoleDisplayName()}
@@ -63,13 +61,21 @@ const Header = ({ user, userRole, mozoName, onLogout, userName, onToggleSidebar 
         </div>
 
         {/* Información adicional y acciones */}
-        <div className="flex items-center space-x-4">
-          {/* Botones móviles para mozos */}
+        <div className="flex items-center space-x-3">
+          {/* Botones de navegación para mozos */}
           {(userRole === 'mozo') && (
-            <div className="flex items-center space-x-2 lg:hidden">
+            <div className="flex items-center space-x-2">
               <button
                 onClick={() => navigate('/historial-pedidos')}
-                className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-md transition-colors"
+                className="hidden sm:flex items-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white font-medium px-4 py-2 rounded-full shadow-md transition-all duration-300 hover:scale-105"
+              >
+                <span>📋</span>
+                <span className="hidden lg:block">Ver Historial</span>
+              </button>
+              {/* Versión móvil del botón */}
+              <button
+                onClick={() => navigate('/historial-pedidos')}
+                className="sm:hidden p-2 bg-purple-600 hover:bg-purple-700 text-white rounded-full shadow-md transition-colors"
                 title="Historial de Pedidos"
               >
                 📋
@@ -77,15 +83,48 @@ const Header = ({ user, userRole, mozoName, onLogout, userName, onToggleSidebar 
             </div>
           )}
 
-          {/* Indicador de tipo de menú */}
-          <div className="flex items-center space-x-2 bg-gray-50 border border-gray-200 rounded-full px-3 py-2">
-            <span className="text-xl" title={menuType === 'dia' ? 'Carta del Día' : 'Carta de la Noche'}>
-              {menuType === 'dia' ? '☀️' : '🌙'}
-            </span>
-            <span className="hidden sm:block text-sm font-medium text-gray-700">
-              {menuType === 'dia' ? 'Día' : 'Noche'}
-            </span>
-          </div>
+          {/* Botones de navegación para admins */}
+          {(userRole === 'admin') && (
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => navigate('/dashboard-section')}
+                className="hidden sm:flex items-center space-x-2 bg-gray-700 hover:bg-gray-800 text-white font-medium px-4 py-2 rounded-full shadow-md transition-all duration-300 hover:scale-105"
+              >
+                <span>📊</span>
+                <span className="hidden lg:block">Dashboard</span>
+              </button>
+              {/* Versión móvil del botón */}
+              <button
+                onClick={() => navigate('/dashboard-section')}
+                className="sm:hidden p-2 bg-gray-700 hover:bg-gray-800 text-white rounded-full shadow-md transition-colors"
+                title="Dashboard"
+              >
+                📊
+              </button>
+            </div>
+          )}
+
+          {/* Botones de navegación para cajeros */}
+          {(userRole === 'cajero') && (
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => navigate('/productos')}
+                className="hidden sm:flex items-center space-x-2 bg-gray-700 hover:bg-gray-800 text-white font-medium px-4 py-2 rounded-full shadow-md transition-all duration-300 hover:scale-105"
+              >
+                <span>📦</span>
+                <span className="hidden lg:block">Productos</span>
+              </button>
+              {/* Versión móvil del botón */}
+              <button
+                onClick={() => navigate('/productos')}
+                className="sm:hidden p-2 bg-gray-700 hover:bg-gray-800 text-white rounded-full shadow-md transition-colors"
+                title="Productos"
+              >
+                📦
+              </button>
+            </div>
+          )}
+
 
           {/* Fecha y hora actual */}
           <div className="hidden md:block text-right">

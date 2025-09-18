@@ -325,53 +325,56 @@ function ProductosSection() {
 
   return (
     <div className="bg-white p-8 rounded-lg shadow-xl">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-4xl font-extrabold text-gray-800">
+      {/* Header responsive */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-8 space-y-4 sm:space-y-0">
+        <h1 className="text-2xl sm:text-4xl font-extrabold text-gray-800">
           Gestión de Productos
         </h1>
-        <div className="flex space-x-3">
+        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
           <button
             onClick={() => setShowCategoryManagement(true)}
-            className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg shadow-md flex items-center space-x-2"
+            className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg shadow-md flex items-center justify-center space-x-2 text-sm sm:text-base"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
             </svg>
-            <span>Gestionar Categorías</span>
+            <span className="hidden sm:inline">Gestionar Categorías</span>
+            <span className="sm:hidden">Categorías</span>
           </button>
           <button
             onClick={() => handleOpenModal()}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md text-sm sm:text-base"
           >
-            + Añadir Producto
+            <span className="sm:hidden">+ Producto</span>
+            <span className="hidden sm:inline">+ Añadir Producto</span>
           </button>
         </div>
       </div>
 
-      {/* Toggle Carta Día/Noche */}
+      {/* Toggle Carta Día/Noche - Responsive */}
       <div className="flex justify-center mb-8">
         <div className="bg-gray-100 rounded-full p-1 flex">
           <button
             onClick={() => handleMenuTypeChange('dia')}
-            className={`px-6 py-3 rounded-full font-semibold text-sm transition-all duration-200 flex items-center space-x-2 ${
-              menuType === 'dia' 
-                ? 'bg-yellow-500 text-white shadow-md' 
+            className={`px-3 sm:px-6 py-3 rounded-full font-semibold text-sm transition-all duration-200 flex items-center space-x-0 sm:space-x-2 ${
+              menuType === 'dia'
+                ? 'bg-yellow-500 text-white shadow-md'
                 : 'text-gray-700 hover:bg-gray-200'
             }`}
           >
             <span className="text-lg">☀️</span>
-            <span>Carta del Día</span>
+            <span className="hidden sm:inline ml-2">Carta del Día</span>
           </button>
           <button
             onClick={() => handleMenuTypeChange('noche')}
-            className={`px-6 py-3 rounded-full font-semibold text-sm transition-all duration-200 flex items-center space-x-2 ${
-              menuType === 'noche' 
-                ? 'bg-indigo-600 text-white shadow-md' 
+            className={`px-3 sm:px-6 py-3 rounded-full font-semibold text-sm transition-all duration-200 flex items-center space-x-0 sm:space-x-2 ${
+              menuType === 'noche'
+                ? 'bg-indigo-600 text-white shadow-md'
                 : 'text-gray-700 hover:bg-gray-200'
             }`}
           >
             <span className="text-lg">🌙</span>
-            <span>Carta de la Noche</span>
+            <span className="hidden sm:inline ml-2">Carta de la Noche</span>
           </button>
         </div>
       </div>
@@ -381,7 +384,7 @@ function ProductosSection() {
         <table className="min-w-full bg-white">
           <thead>
             <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-              <th className="py-3 px-6 Ftext-left">Nombre</th>
+              <th className="py-3 px-4 text-left w-48">Nombre</th>
               <th className="py-3 px-6 text-left">Categoría</th>
               <th className="py-3 px-6 text-center">Tipo de Carta</th>
               <th className="py-3 px-6 text-center">Precio</th>
@@ -405,8 +408,8 @@ function ProductosSection() {
                     const currentCartaType = getProductCartaType(product);
                     return (
                     <tr key={product.id} className="border-b border-gray-200 hover:bg-gray-50">
-                    <td className="py-3 px-6 text-left whitespace-nowrap">
-                        <span className="font-medium">{product.nombre}</span>
+                    <td className="py-3 px-4 text-left w-48">
+                        <span className="font-medium break-words">{product.nombre}</span>
                     </td>
                     <td className="py-3 px-6 text-left">{product.categoria}</td>
                     <td className="py-3 px-6 text-center">

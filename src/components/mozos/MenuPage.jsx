@@ -81,6 +81,8 @@ const MenuPage = () => {
 
 
   const filteredItems = useMemo(() => {
+    if (!menuItems.length || !selectedCategory) return [];
+
     const allItems = menuItems.flatMap(cat => cat.items);
 
     if (searchTerm.trim()) {
@@ -89,13 +91,13 @@ const MenuPage = () => {
       );
     }
 
+    // Optimización: cachear la lógica de categoría
+    const categoryKey = menuType === 'noche' ? 'categoria_noche' : 'categoria';
+
     return allItems.filter(item => {
-      // Para carta de noche, usar categoria_noche si existe, sino categoria
-      // Para carta del día, usar categoria
       const itemCategory = menuType === 'noche'
         ? (item.categoria_noche || item.categoria)
         : item.categoria;
-
       return itemCategory === selectedCategory;
     });
   }, [menuItems, selectedCategory, searchTerm, menuType]);
@@ -114,7 +116,7 @@ const MenuPage = () => {
     }
   }, [orderError, showError, clearOrderError]);
 
-  // Seleccionar categoría por defecto según el tipo de menú
+  // Seleccionar categoría por defecto según el tipo de menú - OPTIMIZADO
   React.useEffect(() => {
     if (categories.length > 0 && !selectedCategory) {
       // Para carta de noche, buscar "Broaster", para carta de día buscar "Menu"
@@ -130,7 +132,23 @@ const MenuPage = () => {
         setSelectedCategory(categories[0]);
       }
     }
-  }, [categories, selectedCategory, menuType]);
+  }, [categories]); // Removido menuType para evitar re-renders innecesarios
+
+  // Reset de categoría cuando cambia el tipo de menú
+  React.useEffect(() => {
+    if (categories.length > 0) {
+      const defaultCategoryName = menuType === 'noche' ? 'broaster' : 'menu';
+      const defaultCategory = categories.find(cat =>
+        cat.toLowerCase() === defaultCategoryName.toLowerCase()
+      );
+
+      if (defaultCategory) {
+        setSelectedCategory(defaultCategory);
+      } else {
+        setSelectedCategory(categories[0]);
+      }
+    }
+  }, [menuType]); // Solo cuando cambia menuType explícitamente
   const handleAddToOrder = async (item) => {
     const result = await addToOrder(item);
     if (result.success) {
@@ -270,91 +288,10 @@ const MenuPage = () => {
       
       {/* Contenido principal */}
       <div className="flex flex-col lg:flex-row flex-1 min-h-0">
-        {/* Área del menú */}
-        <div className="flex-1 flex flex-col min-h-0">
-          {/* Header del menú (solo desktop) */}
-          <div className={`p-6 hidden lg:block bg-white ${userRole === 'admin' ? 'pt-20' : ''}`}>
-            <div className="flex justify-between items-center pb-4 border-b border-gray-200">
-              <div>
-                <h1 className="text-4xl font-extrabold text-gray-900">
-                  Menú del Restaurante
-                </h1>
-                <p className="text-gray-600 text-lg mt-2">
-                  {isEditing && '(Editando pedido)'}
-                </p>
-              </div>
-              
-              <div className="flex items-center space-x-4">
-                {userRole !== 'admin' && userRole !== 'cajero' && (
-                  <button
-                    onClick={() => navigate('/historial-pedidos')}
-                    className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-5 rounded-full shadow-md transform transition-all duration-300 hover:scale-105"
-                  >
-                    Ver Historial
-                  </button>
-                )}
-                {userRole === 'admin' && (
-                  <button
-                    onClick={() => navigate('/dashboard-section')}
-                    className="bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-5 rounded-full shadow-md transform transition-all duration-300 hover:scale-105"
-                  >
-                    📊 Dashboard
-                  </button>
-                )}
-                {userRole === 'cajero' && (
-                  <button
-                    onClick={() => navigate('/productos')}
-                    className="bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-5 rounded-full shadow-md transform transition-all duration-300 hover:scale-105"
-                  >
-                    📊 Productos
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Header móvil */}
-          {userRole === 'admin' && (
-          <div className="lg:hidden bg-white shadow-sm sticky top-0 z-30 px-4 py-3">
-            <div className="flex justify-between items-center">
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">Menú</h1>
-                <p className="text-sm text-gray-600">
-                  {isEditing && '(Editando)'}
-                </p>
-              </div>
-              <div className="flex items-center space-x-2">
-                {userRole !== 'admin'  && userRole !== 'cajero' && (
-                  <button
-                    onClick={() => navigate('/historial-pedidos')}
-                    className="bg-purple-600 hover:bg-purple-700 text-white text-sm px-3 py-2 rounded-full"
-                  >
-                    Historial
-                  </button>
-                )}
-                {userRole === 'admin'  && (
-                  <button
-                    onClick={() => navigate('/dashboard-section')}
-                    className="bg-gray-700 hover:bg-gray-800 text-white text-sm px-3 py-2 rounded-full"
-                  >
-                    📊
-                  </button>
-                )}
-                {userRole === 'cajero'  && (
-                  <button
-                    onClick={() => navigate('/productos')}
-                    className="bg-gray-700 hover:bg-gray-800 text-white text-sm px-3 py-2 rounded-full"
-                  >
-                    📊
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-          )}
-          
+        {/* Área del menú - Ancho calculado restando el carrito */}
+        <div className="flex-1 lg:w-[calc(100%-24rem)] flex flex-col min-h-0 min-w-0">
           {/* Barra de búsqueda y filtros - STICKY mejorada */}
-          <div className={`sticky ${userRole === 'admin' ? 'top-16' : 'top-0'} ${userRole === 'admin' ? 'lg:top-16' : 'lg:top-0'} bg-white shadow-sm z-20 px-4 lg:px-6 py-4`}>
+          <div className="sticky top-0 bg-white shadow-sm z-20 px-4 lg:px-6 py-4">
             {/* Barra de búsqueda */}
             <input
               type="text"
@@ -363,24 +300,30 @@ const MenuPage = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-lg text-base mb-4 focus:ring-2 focus:ring-blue-400 focus:border-transparent"
             />
-
-
-            {/* Botones de categoría - Scroll horizontal en móvil */}
-            <div className="flex gap-2 overflow-x-auto pb-2">
-              {categories.map(category => (
-                <button
-                  key={category}
-                  onClick={() => setSelectedCategory(category)}
-                  className={`px-4 py-2 font-semibold rounded-full text-sm whitespace-nowrap flex-shrink-0 transition-all duration-200 ${
-                    selectedCategory === category && !searchTerm.trim()
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {category}
-                </button>
-              ))}
-            </div>
+            {/* Botones de categoría - Scroll horizontal */}
+            {categories.length > 0 && (
+              <div className="w-full overflow-hidden">
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide lg:scrollbar-show"
+                     style={{
+                       scrollbarWidth: 'thin',
+                       scrollbarColor: '#d1d5db #f3f4f6'
+                     }}>
+                  {categories.map(category => (
+                    <button
+                      key={category}
+                      onClick={() => setSelectedCategory(category)}
+                      className={`px-4 py-2 font-semibold rounded-full text-sm whitespace-nowrap flex-shrink-0 transition-all duration-200 ${
+                        selectedCategory === category && !searchTerm.trim()
+                          ? 'bg-blue-600 text-white shadow-md'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {category}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Mensaje de edición */}
@@ -479,8 +422,8 @@ const MenuPage = () => {
           </div>
         </div>
 
-        {/* Carrito lateral (solo desktop) - ARREGLADO */}
-        <div className="hidden lg:flex flex-col w-96 bg-white shadow-xl border-l border-gray-200 h-full relative">
+        {/* Carrito lateral (solo desktop) - Ancho fijo */}
+        <div className="hidden lg:flex flex-col w-96 flex-shrink-0 bg-white shadow-xl border-l border-gray-200 h-full relative">
           {/* 1. Header del carrito (tamaño fijo) */}
           <div className="p-6 border-b border-gray-200 flex-shrink-0">
             <h2 className="text-2xl font-bold text-gray-800 mb-4">Pedido Actual</h2>

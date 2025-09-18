@@ -359,14 +359,7 @@ const OrderHistoryPage = () => {
             </button>
           </div>
         )}
-        {userRole === 'admin' && (
-          <button
-            onClick={() => navigate('/dashboard-section')}
-            className="bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-5 rounded-full shadow-md transform transition-all duration-300 hover:scale-105"
-          >
-            📊 Dashboard
-          </button>
-        )}
+
       </div>
 
       {/* Estadísticas rápidas */}

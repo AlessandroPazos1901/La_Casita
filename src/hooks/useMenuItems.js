@@ -3,7 +3,7 @@ import { products, nightProducts, supabase } from '../services/supabaseClient';
 import { useMenuType } from '../contexts/MenuTypeContext';
 
 const useMenuItems = () => {
-  const { menuType } = useMenuType();
+  const { menuType, loading: menuTypeLoading } = useMenuType();
   const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -17,13 +17,13 @@ const useMenuItems = () => {
 
   useEffect(() => {
     let isMounted = true;
-    
+
     const initializeMenu = async () => {
-      if (!isMounted) return;
-      
+      if (!isMounted || menuTypeLoading) return;
+
       // Cargar elementos del menú
       await loadMenuItems();
-      
+
       // Configurar suscripción solo si el componente sigue montado
       if (isMounted && !isSubscribedRef.current) {
         setupRealtimeSubscription();
@@ -33,20 +33,20 @@ const useMenuItems = () => {
     };
 
     initializeMenu();
-      
+
     return () => {
       isMounted = false;
       cleanupAll();
     };
-  }, []);
+  }, [menuTypeLoading]);
 
   // Recargar menú cuando cambie el tipo
   useEffect(() => {
-    if (menuType) {
+    if (menuType && !menuTypeLoading) {
       console.log(`🔄 Tipo de menú cambió a: ${menuType} - recargando...`);
       loadMenuItems();
     }
-  }, [menuType]);
+  }, [menuType, menuTypeLoading]);
 
   // Manejar cambios de visibilidad de la página
   const setupVisibilityHandlers = () => {

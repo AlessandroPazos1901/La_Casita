@@ -198,6 +198,58 @@ body {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* Scrollbar visible para desktop */
+.scrollbar-show {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db #f3f4f6;
+}
+
+.scrollbar-show::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+
+.scrollbar-show::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 4px;
+}
+
+.scrollbar-show::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+.scrollbar-show::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Solo mostrar scrollbar en desktop */
+@media (min-width: 1024px) {
+  .lg\:scrollbar-show {
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db #f3f4f6;
+  }
+
+  .lg\:scrollbar-show::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+  }
+
+  .lg\:scrollbar-show::-webkit-scrollbar-track {
+    background: #f3f4f6;
+    border-radius: 4px;
+  }
+
+  .lg\:scrollbar-show::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 4px;
+  }
+
+  .lg\:scrollbar-show::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+  }
+}
 .line-clamp-3 {
   display: -webkit-box;
   -webkit-line-clamp: 3;
