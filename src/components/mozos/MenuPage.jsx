@@ -197,21 +197,21 @@ const MenuPage = () => {
         pedido_items: currentOrder
       };
       
-      console.log('Is editing:', isEditing);
-      console.log('Editing order ID:', editingOrderId);
-      console.log('Has original items:', !!originalOrderItems);
+      // console.log('Is editing:', isEditing);
+      // console.log('Editing order ID:', editingOrderId);
+      // console.log('Has original items:', !!originalOrderItems);
 
       // Calcular cambios si es edición
-      console.log('Original items:', originalOrderItems);
-      console.log('Current items:', currentOrder);
-      console.log('Changes calculated:', calcularCambiosPedido(originalOrderItems, currentOrder));
+      // console.log('Original items:', originalOrderItems);
+      // console.log('Current items:', currentOrder);
+      // console.log('Changes calculated:', calcularCambiosPedido(originalOrderItems, currentOrder));
       const changesData = (isEditing && originalOrderItems) ? calcularCambiosPedido(originalOrderItems, currentOrder) : null;
 
       // NUEVA LÓGICA: Impresión térmica automática
       try {
-        console.log('Enviando a impresión térmica...');
+        // console.log('Enviando a impresión térmica...');
         await printOrder(orderData, changesData);
-        console.log('✅ Impresión térmica exitosa');
+        // console.log('✅ Impresión térmica exitosa');
       } catch (printErr) {
         console.error('❌ Error en impresión térmica:', printErr);
         // Mostrar error pero no bloquear el flujo

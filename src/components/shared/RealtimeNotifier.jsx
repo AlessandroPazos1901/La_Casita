@@ -52,7 +52,7 @@ function RealtimeNotifier() {
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'atencion_clientes' },
         (payload) => {
-          console.log('Nueva solicitud de atención recibida:', payload.new);
+          // console.log('Nueva solicitud de atención recibida:', payload.new);
           setNotification(payload.new);
         }
       )

@@ -23,11 +23,11 @@ export const CurrentOrderProvider = ({ children }) => {
       const savedTableNumber = localStorage.getItem('tableNumber');
       const savedEditingOrderId = localStorage.getItem('editingOrderId');
       
-      console.log('Loading from localStorage:', { savedCart, savedTableNumber, savedEditingOrderId });
+      // console.log('Loading from localStorage:', { savedCart, savedTableNumber, savedEditingOrderId });
       
       if (savedCart && savedCart !== '[]') {
         const parsedCart = JSON.parse(savedCart);
-        console.log('Parsed cart:', parsedCart);
+        // console.log('Parsed cart:', parsedCart);
         setCurrentOrder(parsedCart);
       }
       
@@ -55,7 +55,7 @@ export const CurrentOrderProvider = ({ children }) => {
     if (!isInitialized) return; // No guardar hasta que se haya inicializado
     
     try {
-      console.log('Saving to localStorage:', { order, table, editingId });
+      // console.log('Saving to localStorage:', { order, table, editingId });
       localStorage.setItem('currentOrder', JSON.stringify(order));
       localStorage.setItem('tableNumber', table);
       localStorage.setItem('editingOrderId', editingId ? editingId.toString() : 'null');
@@ -245,7 +245,7 @@ export const CurrentOrderProvider = ({ children }) => {
       clearCurrentOrder();
       
       // IMPORTANTE: Forzar recarga inmediata del historial
-      console.log('Pedido creado/actualizado, refrescando historial...');
+      // console.log('Pedido creado/actualizado, refrescando historial...');
       await new Promise(resolve => setTimeout(resolve, 1000)); // Esperar 1 segundo
       refreshOrderHistory();
 
@@ -492,12 +492,12 @@ export const CurrentOrderProvider = ({ children }) => {
   };
 
   const updateExistingOrder = async (orderId, total) => {
-    console.log("Datos en currentOrder ANTES de actualizar:", JSON.stringify(currentOrder, null, 2));
-    console.log("Items originales guardados:", JSON.stringify(originalOrderItems, null, 2));
+    // console.log("Datos en currentOrder ANTES de actualizar:", JSON.stringify(currentOrder, null, 2));
+    // console.log("Items originales guardados:", JSON.stringify(originalOrderItems, null, 2));
     
     try {
       // NO hacer ajustes de stock aquí - ya se ajustaron cuando se agregaron/eliminaron productos
-      console.log("⚠️ IMPORTANTE: No se ajustará stock - ya fue ajustado al agregar/eliminar productos");
+      // console.log("⚠️ IMPORTANTE: No se ajustará stock - ya fue ajustado al agregar/eliminar productos");
 
       // Eliminar items anteriores
       const deleteResult = await deleteOrderItems(orderId);
@@ -537,7 +537,7 @@ export const CurrentOrderProvider = ({ children }) => {
         throw new Error(updateResult.error);
       }
 
-      console.log("✅ Pedido actualizado sin ajustar stock (ya fue ajustado previamente)");
+      // console.log("✅ Pedido actualizado sin ajustar stock (ya fue ajustado previamente)");
 
       return { success: true };
     } catch (err) {

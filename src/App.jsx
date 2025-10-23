@@ -55,7 +55,7 @@ function App() {
       isAdmin,
       isMozo
   } = useAuth();
-  console.log('APP: Renderizando. loading:', loading, '| isAuthenticated:', isAuthenticated);
+  // // console.log('APP: Renderizando. loading:', loading, '| isAuthenticated:', isAuthenticated);
   // Mostrar loading mientras se inicializa la autenticación
   if (loading) {
     return <LoadingSpinner />;

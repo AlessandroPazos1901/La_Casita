@@ -17,7 +17,7 @@ const LoadingSpinner = () => (
 const ProtectedRoute = ({ allowedRoles }) => {
   const { isAuthenticated, userRole, loading, isAdmin } = useAuth();
 
-  console.log('PROTECTED ROUTE: Verificando acceso. loading:', loading, '| isAuthenticated:', isAuthenticated, '| userRole:', userRole);
+  // console.log('PROTECTED ROUTE: Verificando acceso. loading:', loading, '| isAuthenticated:', isAuthenticated, '| userRole:', userRole);
 
   // 1. Mientras se verifica la sesión, muestra una pantalla de carga.
   if (loading || (isAuthenticated && !userRole)) {

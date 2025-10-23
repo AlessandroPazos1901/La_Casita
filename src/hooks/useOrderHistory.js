@@ -17,7 +17,7 @@ const useOrderHistory = (userId, userRole) => {
           'postgres_changes',
           { event: '*', schema: 'public', table: 'pedidos' }, // Escucha INSERT y UPDATE
           (payload) => {
-            console.log('¡Cambio en tiempo real recibido!', payload);
+            // console.log('¡Cambio en tiempo real recibido!', payload);
             
             // Actualizamos el estado local con los nuevos datos del pedido
             // Esto es para UPDATE. Si un pedido se actualiza (ej: se paga), lo reemplazamos.

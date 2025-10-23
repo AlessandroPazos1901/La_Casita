@@ -36,7 +36,7 @@ export const DataCacheProvider = ({ children }) => {
           new Date(parsedCache.lastUpdate).toDateString() === new Date().toDateString();
         
         if (isToday) {
-          console.log('📦 Cargando datos desde cache...');
+          // console.log('📦 Cargando datos desde cache...');
           setCache(parsedCache);
           return;
         }
@@ -46,7 +46,7 @@ export const DataCacheProvider = ({ children }) => {
       }
     }
     // Si no hay cache válido, cargar datos
-    console.log('🔄 Cargando datos frescos...');
+    // console.log('🔄 Cargando datos frescos...');
     loadAllData();
   }, []);
 
@@ -92,7 +92,7 @@ export const DataCacheProvider = ({ children }) => {
         error: null
       });
 
-      console.log('✅ Datos cargados y guardados en cache');
+      // console.log('✅ Datos cargados y guardados en cache');
     } catch (error) {
       console.error('❌ Error loading data:', error);
       setCache(prev => ({ 
@@ -237,7 +237,7 @@ export const DataCacheProvider = ({ children }) => {
       [table]: [newItem, ...prev[table]],
       lastUpdate: new Date().toISOString()
     }));
-    console.log(`➕ Agregado al cache: ${table}`);
+    // console.log(`➕ Agregado al cache: ${table}`);
   };
 
   const updateInCache = (table, id, updatedItem) => {
@@ -246,7 +246,7 @@ export const DataCacheProvider = ({ children }) => {
       [table]: prev[table].map(item => item.id === id ? updatedItem : item),
       lastUpdate: new Date().toISOString()
     }));
-    console.log(`📝 Actualizado en cache: ${table} ID:${id}`);
+    // console.log(`📝 Actualizado en cache: ${table} ID:${id}`);
   };
 
   const removeFromCache = (table, id) => {
@@ -255,11 +255,11 @@ export const DataCacheProvider = ({ children }) => {
       [table]: prev[table].filter(item => item.id !== id),
       lastUpdate: new Date().toISOString()
     }));
-    console.log(`🗑️ Eliminado del cache: ${table} ID:${id}`);
+    // console.log(`🗑️ Eliminado del cache: ${table} ID:${id}`);
   };
 
   const refreshCache = () => {
-    console.log('🔄 Refrescando cache completo...');
+    // console.log('🔄 Refrescando cache completo...');
     loadAllData();
   };
 
@@ -277,13 +277,13 @@ export const DataCacheProvider = ({ children }) => {
       isLoading: false,
       error: null
     });
-    console.log('🧹 Cache limpiado');
+    // console.log('🧹 Cache limpiado');
   };
 
   // Solo para Reporte del Día: forzar consulta fresca
   const getFreshDailyData = async (date) => {
     try {
-      console.log(`📊 Cargando datos frescos para: ${date}`);
+      // console.log(`📊 Cargando datos frescos para: ${date}`);
 
       const startOfDay = `${date}T00:00:00`;
       const endOfDay = `${date}T23:59:59`;
@@ -317,7 +317,7 @@ export const DataCacheProvider = ({ children }) => {
 
       // Si no hay ventas en 'pedidos', buscar en datos históricos
       if (ventas.length === 0) {
-        console.log(`🔍 No se encontraron pedidos activos para ${date}, buscando datos históricos...`);
+        // console.log(`🔍 No se encontraron pedidos activos para ${date}, buscando datos históricos...`);
 
         try {
           // Obtener datos de productos vendidos de reportes_productos_diarios
@@ -334,7 +334,7 @@ export const DataCacheProvider = ({ children }) => {
 
           if (reportesProductosResult.data && !reportesProductosResult.error && reportesProductosResult.data.length > 0) {
             const reportesProductos = reportesProductosResult.data;
-            console.log(`✅ Encontrados productos vendidos para ${date}:`, reportesProductos);
+            // console.log(`✅ Encontrados productos vendidos para ${date}:`, reportesProductos);
 
             // Procesar productos vendidos con detalles completos
             productosVendidos = reportesProductos.map(reporte => ({
@@ -359,12 +359,12 @@ export const DataCacheProvider = ({ children }) => {
           let datosCompletos = null;
           if (reportesDiariosResult.data && !reportesDiariosResult.error) {
             datosCompletos = reportesDiariosResult.data;
-            console.log(`✅ Encontrado reporte diario completo para ${date}:`, datosCompletos);
+            // console.log(`✅ Encontrado reporte diario completo para ${date}:`, datosCompletos);
           }
 
           // Si no hay reporte diario completo, usar vista ventas_diarias para totales
           if (!datosCompletos && totalIngresosDia === 0) {
-            console.log(`📊 Intentando con vista ventas_diarias para ${date}...`);
+            // console.log(`📊 Intentando con vista ventas_diarias para ${date}...`);
 
             const ventasDiariasResult = await supabase
               .from('ventas_diarias')
@@ -374,7 +374,7 @@ export const DataCacheProvider = ({ children }) => {
             if (ventasDiariasResult.data && ventasDiariasResult.data.length > 0) {
               const ventaDiaria = ventasDiariasResult.data[0];
               totalIngresosDia = ventaDiaria.total_ventas || 0;
-              console.log(`✅ Encontrado en vista ventas_diarias para ${date}:`, ventaDiaria);
+              // console.log(`✅ Encontrado en vista ventas_diarias para ${date}:`, ventaDiaria);
             }
           }
 

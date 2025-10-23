@@ -133,7 +133,7 @@ export const userRoles = {
     if (!user || user.role !== 'mozo') return null;
 
     try {
-      console.log('Getting mozo data for mozo_id:', user.mozo_id);
+      // console.log('Getting mozo data for mozo_id:', user.mozo_id);
       
       const { data: mozo, error } = await supabase
         .from('mozos')
@@ -147,7 +147,7 @@ export const userRoles = {
         return null;
       }
 
-      console.log('Mozo data found:', mozo);
+      // console.log('Mozo data found:', mozo);
       return mozo;
     } catch (error) {
       console.error('Error obteniendo datos del mozo:', error);
@@ -658,7 +658,7 @@ export const nightProducts = {
   // Agregar nueva categoría de noche
   addNightCategory: async (categoryName) => {
     try {
-      console.log(`🌙 Creando categoría de noche: "${categoryName}"`);
+      // console.log(`🌙 Creando categoría de noche: "${categoryName}"`);
 
       const { data, error } = await supabase
         .from('categoria_menu')
@@ -674,7 +674,7 @@ export const nightProducts = {
         throw error;
       }
 
-      console.log('✅ Categoría de noche creada exitosamente:', data);
+      // console.log('✅ Categoría de noche creada exitosamente:', data);
       return { data, error: null };
     } catch (error) {
       console.error('❌ Error creating night category:', error);

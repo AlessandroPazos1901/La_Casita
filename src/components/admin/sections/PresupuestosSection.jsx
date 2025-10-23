@@ -106,7 +106,7 @@ function PresupuestosSection() {
           .eq('id', existingBudget.id);
 
         if (error) throw error;
-        console.log('Presupuesto actualizado correctamente');
+        // console.log('Presupuesto actualizado correctamente');
       } else {
         // Crear nuevo presupuesto
         const { error } = await supabase
@@ -120,7 +120,7 @@ function PresupuestosSection() {
           }]);
 
         if (error) throw error;
-        console.log('Presupuesto creado correctamente');
+        // console.log('Presupuesto creado correctamente');
       }
 
       // Recargar presupuestos
@@ -156,7 +156,7 @@ function PresupuestosSection() {
       setShowEditModal(false);
       setEditingPresupuesto(null);
       await loadPresupuestos();
-      console.log('Presupuesto actualizado correctamente');
+      // console.log('Presupuesto actualizado correctamente');
     } catch (err) {
       console.error('Error updating presupuesto:', err);
       alert('Error al actualizar el presupuesto: ' + err.message);
@@ -177,7 +177,7 @@ function PresupuestosSection() {
       if (error) throw error;
 
       await loadPresupuestos();
-      console.log('Presupuesto eliminado correctamente');
+      // console.log('Presupuesto eliminado correctamente');
     } catch (err) {
       console.error('Error deleting presupuesto:', err);
       alert('Error al eliminar el presupuesto: ' + err.message);

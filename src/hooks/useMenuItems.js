@@ -43,7 +43,7 @@ const useMenuItems = () => {
   // Recargar menú cuando cambie el tipo
   useEffect(() => {
     if (menuType && !menuTypeLoading) {
-      console.log(`🔄 Tipo de menú cambió a: ${menuType} - recargando...`);
+      // console.log(`🔄 Tipo de menú cambió a: ${menuType} - recargando...`);
       loadMenuItems();
     }
   }, [menuType, menuTypeLoading]);
@@ -52,14 +52,14 @@ const useMenuItems = () => {
   const setupVisibilityHandlers = () => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        console.log('👁️ Página visible - verificando conexión...');
+        // console.log('👁️ Página visible - verificando conexión...');
         if (!isSubscribedRef.current) {
-          console.log('🔄 Reconectando suscripción al volver a la página...');
+          // console.log('🔄 Reconectando suscripción al volver a la página...');
           setupRealtimeSubscription();
         }
         setupHeartbeat();
       } else {
-        console.log('👁️ Página oculta - pausando heartbeat...');
+        // console.log('👁️ Página oculta - pausando heartbeat...');
         clearHeartbeat();
       }
     };
@@ -79,7 +79,7 @@ const useMenuItems = () => {
         
         // Si ha pasado más de 2 minutos sin heartbeat, reconectar
         if (timeSinceLastHeartbeat > 120000) {
-          console.log('💓 Heartbeat perdido - reconectando...');
+          // console.log('💓 Heartbeat perdido - reconectando...');
           setupRealtimeSubscription();
         }
         
@@ -118,7 +118,7 @@ const useMenuItems = () => {
       let error = null;
 
       // Siempre cargar de la tabla productos unificada
-      console.log(`🔄 Cargando productos para carta ${menuType === 'noche' ? 'nocturna' : 'diurna'}...`);
+      // console.log(`🔄 Cargando productos para carta ${menuType === 'noche' ? 'nocturna' : 'diurna'}...`);
       const result = await products.getActiveProducts();
 
       if (result.data) {
@@ -148,7 +148,7 @@ const useMenuItems = () => {
       const organizedMenu = organizeMenuByCategory(data || [], menuType);
       setMenuItems(organizedMenu);
 
-      console.log(`📋 Cargados ${data?.length || 0} productos para carta ${menuType === 'noche' ? 'nocturna' : 'diurna'}`);
+      // console.log(`📋 Cargados ${data?.length || 0} productos para carta ${menuType === 'noche' ? 'nocturna' : 'diurna'}`);
     } catch (err) {
       setError(err.message);
       console.error('Error al cargar el menú:', err);
@@ -161,7 +161,7 @@ const useMenuItems = () => {
     // Limpiar suscripción existente antes de crear una nueva
     cleanupSubscription();
     
-    console.log('🔄 Configurando nueva suscripción de tiempo real...');
+    // console.log('🔄 Configurando nueva suscripción de tiempo real...');
     
     // Crear nueva suscripción con nombre único por sesión
     const sessionId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -175,7 +175,7 @@ const useMenuItems = () => {
           table: 'productos'
         },
         (payload) => {
-          console.log('🔄 Cambio de stock en productos recibido:', payload.new);
+          // console.log('🔄 Cambio de stock en productos recibido:', payload.new);
           lastHeartbeatRef.current = Date.now(); // Actualizar heartbeat
           if (payload.new && payload.new.activo) {
             // Verificar si el producto actualizado debe mostrarse en la carta actual
@@ -190,10 +190,10 @@ const useMenuItems = () => {
         }
       )
       .subscribe((status, err) => {
-        console.log(`📡 Estado de suscripción [${sessionId}]:`, status);
+        // console.log(`📡 Estado de suscripción [${sessionId}]:`, status);
         
         if (status === 'SUBSCRIBED') {
-          console.log('✅ Suscripción a tiempo real activa');
+          // console.log('✅ Suscripción a tiempo real activa');
           isSubscribedRef.current = true;
         } else if (status === 'CHANNEL_ERROR') {
           console.error('❌ Error en canal de tiempo real:', err);
@@ -201,7 +201,7 @@ const useMenuItems = () => {
           
           // Intentar reconectar después de un delay progresivo
           const retryDelay = Math.min(5000 + Math.random() * 2000, 30000); // 5-7 segundos, máximo 30
-          console.log(`🔄 Reintentando reconexión en ${retryDelay}ms...`);
+          // console.log(`🔄 Reintentando reconexión en ${retryDelay}ms...`);
           
           // Limpiar timeout anterior si existe
           if (reconnectTimeoutRef.current) {
@@ -210,13 +210,13 @@ const useMenuItems = () => {
           
           reconnectTimeoutRef.current = setTimeout(() => {
             if (document.visibilityState === 'visible') {
-              console.log('🔄 Intentando reconectar suscripción...');
+              // console.log('🔄 Intentando reconectar suscripción...');
               setupRealtimeSubscription();
             }
             reconnectTimeoutRef.current = null;
           }, retryDelay);
         } else if (status === 'CLOSED') {
-          console.log('📡 Canal cerrado');
+          // console.log('📡 Canal cerrado');
           isSubscribedRef.current = false;
         }
       });
@@ -227,7 +227,7 @@ const useMenuItems = () => {
 
   const cleanupSubscription = () => {
     if (channelRef.current) {
-      console.log('🔌 Desconectando suscripción tiempo real');
+      // console.log('🔌 Desconectando suscripción tiempo real');
       supabase.removeChannel(channelRef.current);
       channelRef.current = null;
       isSubscribedRef.current = false;
@@ -236,7 +236,7 @@ const useMenuItems = () => {
 
   const organizeMenuByCategory = (products, currentMenuType) => {
     const categories = {};
-    // console.log(`🏷️ Organizando categorías para tipo de carta: ${currentMenuType}`);
+    // // console.log(`🏷️ Organizando categorías para tipo de carta: ${currentMenuType}`);
 
     products.forEach(product => {
       // Determinar qué categoría usar según el tipo de carta
@@ -244,11 +244,11 @@ const useMenuItems = () => {
       if (currentMenuType === 'noche') {
         // Para carta nocturna, usar categoria_noche si existe, sino categoria
         categoryName = product.categoria_noche || product.categoria;
-        // console.log(`🌙 Producto ${product.nombre}: categoria_noche="${product.categoria_noche}" → usando "${categoryName}"`);
+        // // console.log(`🌙 Producto ${product.nombre}: categoria_noche="${product.categoria_noche}" → usando "${categoryName}"`);
       } else {
         // Para carta diurna, usar categoria
         categoryName = product.categoria;
-        // console.log(`☀️ Producto ${product.nombre}: categoria="${product.categoria}" → usando "${categoryName}"`);
+        // // console.log(`☀️ Producto ${product.nombre}: categoria="${product.categoria}" → usando "${categoryName}"`);
       }
 
       // Solo procesar si hay categoría válida
@@ -264,20 +264,20 @@ const useMenuItems = () => {
     });
 
     const finalCategories = Object.values(categories);
-    console.log(`📋 Categorías finales para carta ${currentMenuType}:`, finalCategories.map(cat => `${cat.category} (${cat.items.length} productos)`));
+    // console.log(`📋 Categorías finales para carta ${currentMenuType}:`, finalCategories.map(cat => `${cat.category} (${cat.items.length} productos)`));
 
     return finalCategories;
   };
 
   const updateLocalStock = (updatedProduct) => {
-    console.log('🔄 Actualizando stock local:', updatedProduct);
+    // console.log('🔄 Actualizando stock local:', updatedProduct);
     
     setMenuItems(prevMenuItems => {
       return prevMenuItems.map(category => ({
         ...category,
         items: category.items.map(item => {
           if (item.id === updatedProduct.id) {
-            console.log(`📦 Stock actualizado para ${item.nombre}: ${item.stock} → ${updatedProduct.stock}`);
+            // console.log(`📦 Stock actualizado para ${item.nombre}: ${item.stock} → ${updatedProduct.stock}`);
             return { ...item, stock: updatedProduct.stock };
           }
           return item;

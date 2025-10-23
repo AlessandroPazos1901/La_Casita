@@ -66,7 +66,7 @@ const CategoryManagementModal = ({
       setCategories(updatedCategories);
       setNewCategoryName('');
       
-      console.log(`✅ Categoría "${trimmedName}" agregada a carta ${activeTab}`);
+      // console.log(`✅ Categoría "${trimmedName}" agregada a carta ${activeTab}`);
       
     } catch (error) {
       console.error('Error al agregar categoría:', error);
@@ -119,7 +119,7 @@ const CategoryManagementModal = ({
       setEditingCategory(null);
       setNewCategoryName('');
       
-      console.log(`✅ Categoría "${editingCategory}" → "${trimmedName}" actualizada en carta ${activeTab}`);
+      // console.log(`✅ Categoría "${editingCategory}" → "${trimmedName}" actualizada en carta ${activeTab}`);
       
     } catch (error) {
       console.error('Error al editar categoría:', error);
@@ -157,7 +157,7 @@ const CategoryManagementModal = ({
       
       setCategories(updatedCategories);
       
-      console.log(`✅ Categoría "${categoryName}" eliminada de carta ${activeTab}`);
+      // console.log(`✅ Categoría "${categoryName}" eliminada de carta ${activeTab}`);
       
     } catch (error) {
       console.error('Error al eliminar categoría:', error);

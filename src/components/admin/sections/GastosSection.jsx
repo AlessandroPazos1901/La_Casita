@@ -159,7 +159,7 @@ function GastosSection() {
 
     const result = await addGasto(gastoData);
     if (result.success) {
-      console.log("Gasto añadido correctamente");
+      // console.log("Gasto añadido correctamente");
       // El hook ya actualiza el estado automáticamente
     } else {
       console.error("Error añadiendo gasto:", result.error);
@@ -177,7 +177,7 @@ function GastosSection() {
 
     const result = await updateGasto(editingGasto.id, gastoData);
     if (result.success) {
-      console.log("Gasto actualizado correctamente");
+      // console.log("Gasto actualizado correctamente");
       setShowEditModal(false);
       setEditingGasto(null);
     } else {
@@ -190,7 +190,7 @@ function GastosSection() {
     if (window.confirm('¿Está seguro de que desea eliminar este gasto?')) {
       const result = await deleteGasto(id);
       if (result.success) {
-        console.log("Gasto eliminado correctamente");
+        // console.log("Gasto eliminado correctamente");
       } else {
         console.error("Error eliminando gasto:", result.error);
         alert("Error al eliminar el gasto: " + result.error);
@@ -218,8 +218,8 @@ function GastosSection() {
     const day = String(fecha.getDate()).padStart(2, '0');
     const fechaFormateada = `${year}${month}${day}`;
     const dates = `${fechaFormateada}/${fechaFormateada}`; // Evento de todo el día
-    console.log('Fecha formateada para Google Calendar:', fechaFormateada);
-    console.log('Fecha Sin formatear:', fecha);
+    // console.log('Fecha formateada para Google Calendar:', fechaFormateada);
+    // console.log('Fecha Sin formatear:', fecha);
     // Descripción del evento
     const details = encodeURIComponent(
       `Monto a pagar: S/. ${cuenta.monto.toFixed(2)}\nCategoría: ${cuenta.categoria}`
@@ -256,7 +256,7 @@ function GastosSection() {
       setNewPendingAmount('');
       setNewPendingDueDate('');
       setShowAddPendingModal(false);
-      console.log("Cuenta pendiente añadida correctamente");
+      // console.log("Cuenta pendiente añadida correctamente");
       // Refrescar datos para mostrar la nueva cuenta
       refreshData();
     } else {
@@ -267,7 +267,7 @@ function GastosSection() {
     if (window.confirm('¿Está seguro de que desea eliminar esta cuenta pendiente?')) {
       const result = await deleteCuentaPendiente(payment.id);
       if (result.success) {
-        console.log("Cuenta pendiente eliminada correctamente");
+        // console.log("Cuenta pendiente eliminada correctamente");
         // Refrescar datos para que se actualice la vista
         refreshData();
       } else {
@@ -287,7 +287,7 @@ function GastosSection() {
     if (result.success) {
       const deleteResult = await deleteCuentaPendiente(payment.id);
       if (deleteResult.success) {
-        console.log(`Pago pendiente marcado como pagado y eliminado de cuentas pendientes.`);
+        // console.log(`Pago pendiente marcado como pagado y eliminado de cuentas pendientes.`);
         // Refrescar datos para actualizar la vista
         refreshData();
       }

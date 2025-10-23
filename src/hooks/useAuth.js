@@ -7,16 +7,16 @@ const useAuth = () => {
   const [loading, setLoading] = useState(true);
 
   const checkAuthState = useCallback(async () => {
-    console.log('AUTH: Verificando estado de autenticación...');
+    // console.log('AUTH: Verificando estado de autenticación...');
     try {
       const currentUser = await auth.getCurrentUser();
-      // console.log('AUTH: currentUser:', currentUser);
+      // // console.log('AUTH: currentUser:', currentUser);
       
       if (currentUser) {
         setUser(currentUser);
         
         const userProfile = await auth.getUserProfile(currentUser);
-        // console.log('AUTH: userProfile:', userProfile);
+        // // console.log('AUTH: userProfile:', userProfile);
         setProfile(userProfile);
       }
     } catch (error) {
@@ -25,7 +25,7 @@ const useAuth = () => {
       setProfile(null);
     } finally {
       setLoading(false);
-      console.log('AUTH: Verificación de estado finalizada.');
+      // console.log('AUTH: Verificación de estado finalizada.');
     }
   }, []);
 
@@ -35,7 +35,7 @@ const useAuth = () => {
 
   const login = async (username, password) => {
     try {
-      console.log('LOGIN: 1. Iniciando función de login...');
+      // console.log('LOGIN: 1. Iniciando función de login...');
       const email = `${username.trim()}@gmail.com`;
 
       // Hacemos el signIn
@@ -47,7 +47,7 @@ const useAuth = () => {
         return { success: false, error: 'Usuario o contraseña incorrectos.' };
       }
       
-      console.log('LOGIN: 2. SignIn exitoso. Usuario recibido:', authUser);
+      // console.log('LOGIN: 2. SignIn exitoso. Usuario recibido:', authUser);
 
       // Si signIn fue exitoso, authUser no debería ser nulo, pero es bueno comprobarlo
       if (!authUser) {
@@ -57,10 +57,10 @@ const useAuth = () => {
       // 3. Usamos el 'authUser' que acabamos de recibir para actualizar el estado
       setUser(authUser);
       const userProfile = await auth.getUserProfile(authUser);
-      console.log('LOGIN: 3. Perfil obtenido:', userProfile);
+      // console.log('LOGIN: 3. Perfil obtenido:', userProfile);
       setProfile(userProfile);
 
-      console.log('LOGIN: 5. Login y actualización de estado completados.');
+      // console.log('LOGIN: 5. Login y actualización de estado completados.');
       return { success: true };
 
     } catch (error) {
@@ -71,12 +71,12 @@ const useAuth = () => {
 
   const logout = async () => {
     try {
-      console.log('LOGOUT: 1. Cierre de sesión iniciado.');
+      // console.log('LOGOUT: 1. Cierre de sesión iniciado.');
       await auth.signOut();
       setUser(null);
       setProfile(null);
       // return { success: true };
-      console.log('LOGOUT: 2. Estado local limpiado.');
+      // console.log('LOGOUT: 2. Estado local limpiado.');
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
       //return { success: false, error: error.message };

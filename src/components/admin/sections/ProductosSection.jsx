@@ -257,28 +257,28 @@ function ProductosSection() {
   }
   
   // Debug logs
-  console.log('Debug ProductosSection:', {
-    menuType,
-    totalProducts: productos?.length || 0,
-    filteredProducts: getFilteredProducts().length,
-    dayCategories: dayCategories.length,
-    nightCategories: nightCategories.length,
-    allCategories: getAllCategories(),
-    productGroups: productGroups.map(([cat, prods]) => ({ category: cat, count: prods.length })),
-    sampleProducts: productos?.slice(0, 5).map(p => ({
-      nombre: p.nombre,
-      categoria: p.categoria,
-      tipo_carta: p.tipo_carta,
-      tipo_carta_type: typeof p.tipo_carta,
-      categoria_noche: p.categoria_noche
-    })),
-    // Análisis de tipos de carta
-    tipoCartaDistribution: productos?.reduce((acc, p) => {
-      const tipo = p.tipo_carta || 'null_undefined';
-      acc[tipo] = (acc[tipo] || 0) + 1;
-      return acc;
-    }, {})
-  });
+  // console.log('Debug ProductosSection:', {
+  //   menuType,
+  //   totalProducts: productos?.length || 0,
+  //   filteredProducts: getFilteredProducts().length,
+  //   dayCategories: dayCategories.length,
+  //   nightCategories: nightCategories.length,
+  //   allCategories: getAllCategories(),
+  //   productGroups: productGroups.map(([cat, prods]) => ({ category: cat, count: prods.length })),
+  //   sampleProducts: productos?.slice(0, 5).map(p => ({
+  //     nombre: p.nombre,
+  //     categoria: p.categoria,
+  //     tipo_carta: p.tipo_carta,
+  //     tipo_carta_type: typeof p.tipo_carta,
+  //     categoria_noche: p.categoria_noche
+  //   })),
+  //   // Análisis de tipos de carta
+  //   tipoCartaDistribution: productos?.reduce((acc, p) => {
+  //     const tipo = p.tipo_carta || 'null_undefined';
+  //     acc[tipo] = (acc[tipo] || 0) + 1;
+  //     return acc;
+  //   }, {})
+  // });
 
   const handleSaveProduct = async (productData) => {
     // Convertir menuType al valor correcto para la base de datos
@@ -300,7 +300,7 @@ function ProductosSection() {
     }
 
     if (result.success) {
-      console.log('Producto guardado con éxito');
+      // console.log('Producto guardado con éxito');
       handleCloseModal();
       // Recargar datos para mostrar cambios
       await refreshData();
@@ -313,7 +313,7 @@ function ProductosSection() {
     if (window.confirm('¿Está seguro de que desea eliminar este producto? Si ya ha sido usado en un pedido, solo se desactivará.')) {
       const result = await deleteProduct(productId);
       if (result.success) {
-        console.log('Producto eliminado/desactivado con éxito');
+        // console.log('Producto eliminado/desactivado con éxito');
       } else {
         alert(`Error al eliminar el producto: ${result.error}`);
       }

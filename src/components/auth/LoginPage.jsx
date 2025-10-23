@@ -18,12 +18,12 @@ const LoginPage = ({ onLogin }) => {
     e.preventDefault();
     setLoading(true);
     setMessage('');
-    console.log('LOGIN_PAGE: 1. Botón de login presionado. Llamando a onLogin...');
+    // console.log('LOGIN_PAGE: 1. Botón de login presionado. Llamando a onLogin...');
     // La lógica compleja ya no está aquí.
     // Simplemente llamamos a la función `login` que viene de las props (onLogin).
     // Esta función `onLogin` será la función `login` de nuestro `useAuth`.
     const result = await onLogin(username, password);
-    console.log('LOGIN_PAGE: 2. onLogin ha respondido. Resultado:', result);
+    // console.log('LOGIN_PAGE: 2. onLogin ha respondido. Resultado:', result);
     if (result && result.success) {
       navigate('/', { replace: true });
     } else {
